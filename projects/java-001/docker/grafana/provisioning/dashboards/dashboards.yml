@@ -1,7 +1,0 @@
-apiVersion: 1
-providers:
-  - name: java700
-    folder: Java-700
-    type: file
-    options:
-      path: /var/lib/grafana/dashboards
