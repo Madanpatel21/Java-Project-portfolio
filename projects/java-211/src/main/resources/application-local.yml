@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:stewardship}
+    username: ${POSTGRES_USER:stewardship}
+    password: ${POSTGRES_PASSWORD:stewardship}
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:stewardship}
+    password: ${RABBIT_PASSWORD:stewardship}
+
+app:
+  messaging:
+    enabled: true
+  seed:
+    enabled: false
+
+logging:
+  structured:
+    format:
+      console: ecs
+  level:
+    com.java700.stewardship: INFO

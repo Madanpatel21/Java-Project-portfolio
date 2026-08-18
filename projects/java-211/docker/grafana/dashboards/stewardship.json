@@ -1,0 +1,29 @@
+{
+  "title": "JAVA-211 Antimicrobial Stewardship",
+  "uid": "java211",
+  "panels": [
+    {"title": "Prescriptions created /m", "type": "timeseries",
+     "targets": [{"expr": "rate(stewardship_prescriptions_created_total[1m])", "legendFormat": "rx"}],
+     "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0}},
+    {"title": "Interventions proposed /m", "type": "timeseries",
+     "targets": [{"expr": "rate(stewardship_interventions_proposed_total[1m])", "legendFormat": "proposed"}],
+     "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0}},
+    {"title": "Interventions accepted /m", "type": "timeseries",
+     "targets": [{"expr": "rate(stewardship_interventions_accepted_total[1m])", "legendFormat": "accepted"}],
+     "gridPos": {"h": 8, "w": 8, "x": 16, "y": 0}},
+    {"title": "Drug-bug mismatch alerts", "type": "stat",
+     "targets": [{"expr": "stewardship_alerts_drug_bug_mismatch_total"}],
+     "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8}},
+    {"title": "Open review tasks", "type": "stat",
+     "targets": [{"expr": "stewardship_reviews_open"}],
+     "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8}},
+    {"title": "Evaluation duration (s)", "type": "timeseries",
+     "targets": [{"expr": "stewardship_evaluation_duration_seconds_max", "legendFormat": "max"}],
+     "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8}},
+    {"title": "HTTP request rate", "type": "timeseries",
+     "targets": [{"expr": "rate(http_server_requests_seconds_count[1m])", "legendFormat": "{{method}} {{uri}}"}],
+     "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16}}
+  ],
+  "schemaVersion": 39,
+  "version": 1
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Spring DI: constructor injection of container-managed singletons (never externally mutated) -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+    <Class name="~com\.java700\.stewardship\..*"/>
+  </Match>
+  <!-- Fail-fast wiring: constructor throws intentionally if handler wiring is broken -->
+  <Match>
+    <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    <Class name="~com\.java700\.stewardship\.messaging\..*"/>
+  </Match>
+</FindBugsFilter>

@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: antimicrobial-stewardship
+  profiles:
+    default: dev
+  threads:
+    virtual:
+      enabled: true
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${APP_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  security:
+    jwt:
+      issuer: ${JWT_ISSUER:http://localhost:8080}
+      secret: ${JWT_SECRET:dev-only-please-rotate-this-secret-0123456789abcdef}
+      ttl-minutes: ${JWT_TTL_MINUTES:30}
+    lockout:
+      max-attempts: 5
+      lock-minutes: 15
+  stewardship:
+    review-trigger-hours: ${REVIEW_TRIGGER_HOURS:48}
+    restricted-auth-hours: ${RESTRICTED_AUTH_HOURS:72}
+    redundant-coverage-overlap-hours: 24
+    antibiogram-min-isolates: 30
+    isolate-dedup-days: 7
+  messaging:
+    enabled: ${MESSAGING_ENABLED:false}
+  seed:
+    enabled: false
+  scheduler:
+    enabled: true
+    review-scan-delay-ms: 30000
+    review-scan-interval-ms: 300000
+    auth-expiry-delay-ms: 30000
+    auth-expiry-interval-ms: 300000
+  rate-limit:
+    auth-per-minute: 10
