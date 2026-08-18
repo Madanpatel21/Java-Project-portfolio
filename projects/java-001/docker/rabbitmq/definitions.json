@@ -1,0 +1,29 @@
+{
+  "users": [
+    {"name": "workforce", "password_hash": "CHANGE_ME_USE_RABBITMQCTL", "tags": "administrator"}
+  ],
+  "vhosts": [{"name": "/"}],
+  "permissions": [
+    {"user": "workforce", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*"}
+  ],
+  "exchanges": [
+    {"name": "workforce.events", "vhost": "/", "type": "direct", "durable": true, "auto_delete": false, "internal": false, "arguments": {}},
+    {"name": "workforce.dlx", "vhost": "/", "type": "direct", "durable": true, "auto_delete": false, "internal": false, "arguments": {}}
+  ],
+  "queues": [
+    {"name": "access.events", "vhost": "/", "durable": true, "auto_delete": false,
+     "arguments": {"x-dead-letter-exchange": "workforce.dlx", "x-dead-letter-routing-key": "access.events.dlq"}},
+    {"name": "access.events.dlq", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {}},
+    {"name": "compliance.violations", "vhost": "/", "durable": true, "auto_delete": false,
+     "arguments": {"x-dead-letter-exchange": "workforce.dlx", "x-dead-letter-routing-key": "compliance.violations.dlq"}},
+    {"name": "compliance.violations.dlq", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {}},
+    {"name": "audit.exports", "vhost": "/", "durable": true, "auto_delete": false,
+     "arguments": {"x-dead-letter-exchange": "workforce.dlx", "x-dead-letter-routing-key": "audit.exports.dlq"}},
+    {"name": "audit.exports.dlq", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {}}
+  ],
+  "bindings": [
+    {"source": "workforce.events", "vhost": "/", "destination": "access.events", "destination_type": "queue", "routing_key": "AccessEventIngested", "arguments": {}},
+    {"source": "workforce.events", "vhost": "/", "destination": "compliance.violations", "destination_type": "queue", "routing_key": "ViolationDetected", "arguments": {}},
+    {"source": "workforce.events", "vhost": "/", "destination": "audit.exports", "destination_type": "queue", "routing_key": "ExportRequested", "arguments": {}}
+  ]
+}

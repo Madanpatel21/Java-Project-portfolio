@@ -1,0 +1,28 @@
+# Zero-dependency quickstart profile: embedded H2 (PostgreSQL mode), no Redis/RabbitMQ,
+# built-in local identity provider + JWT issuer, demo seed data.
+spring:
+  datasource:
+    url: jdbc:h2:mem:workforce;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+
+app:
+  seed:
+    enabled: true
+  correlation:
+    cron: "0 */5 * * * *"
+
+management:
+  health:
+    rabbit:
+      enabled: false
+    redis:
+      enabled: false
+
+logging:
+  level:
+    com.java700.workforce: INFO
+    org.springframework.security: INFO

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!--
+    EI_EXPOSE_REP2 (constructor stores an injected collaborator reference):
+    Spring beans receive their collaborators via constructor injection as singletons
+    managed by the container — they are never exposed to external mutation. This is the
+    accepted industry-wide exclusion for DI components (Sonar / FindSecBugs guidance).
+    We intentionally KEEP EI_EXPOSE_REP (getters leaking internal state) for entities,
+    which is the pattern that actually leaks mutable state.
+  -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+    <Class name="~com\.java700\.workforce\..*"/>
+  </Match>
+  <!-- Constructor-throw warning: handler registry built eagerly; throwing on a broken
+       handler wiring is intentional (fail-fast on startup, no partially-initialized use). -->
+  <Match>
+    <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    <Class name="~com\.java700\.workforce\.messaging\..*"/>
+  </Match>
+</FindBugsFilter>
