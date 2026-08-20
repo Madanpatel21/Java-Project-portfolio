@@ -127,7 +127,10 @@ def load_test(base, paths, token, out):
                     "stewardship_interventions_accepted_total",
                     "stewardship_alerts_drug_bug_mismatch_total",
                     "stewardship_evaluation_duration_seconds_count",
-                    "stewardship_evaluation_duration_seconds_sum"}:
+                    "stewardship_evaluation_duration_seconds_sum",
+                    "crvs_registrations_approved_total", "crvs_registrations_open",
+                    "crvs_certificates_issued_total",
+                    "crvs_dedup_candidates_total", "crvs_ledger_appends_total"}:
                 s.log("  " + metric_name)
     except Exception as e:
         s.log(f"  (metrics fetch skipped: {e})")

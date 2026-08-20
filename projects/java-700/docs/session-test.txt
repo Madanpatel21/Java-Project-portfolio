@@ -1,0 +1,16 @@
+[INFO] Running com.java700.crvs.audit.PostgreSQLMigrationIT
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.007 s -- in com.java700.crvs.audit.PostgreSQLMigrationIT
+[INFO] Running com.java700.crvs.dedup.DedupEngineTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.144 s -- in com.java700.crvs.dedup.DedupEngineTest
+[INFO] Running com.java700.crvs.ledger.HashChainTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.209 s -- in com.java700.crvs.ledger.HashChainTest
+[INFO] Running com.java700.crvs.registration.LifeEventFlowIT
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.65 s -- in com.java700.crvs.registration.LifeEventFlowIT
+[INFO] Running com.java700.crvs.registry.NationalIdGeneratorTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.java700.crvs.registry.NationalIdGeneratorTest
+[INFO] Running com.java700.crvs.security.SecurityIT
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.608 s -- in com.java700.crvs.security.SecurityIT
+[INFO] Running com.java700.crvs.statistics.VitalStatisticsTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.590 s -- in com.java700.crvs.statistics.VitalStatisticsTest
+[WARNING] Tests run: 37, Failures: 0, Errors: 0, Skipped: 1
+[INFO] BUILD SUCCESS

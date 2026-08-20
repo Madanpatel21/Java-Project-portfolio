@@ -1,0 +1,52 @@
+JAVA-700 Digital ID & Civil Registry (CRVS) — LIVE DEMO (real server output)
+===========================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ # registrar captures a birth registration (four-eyes: capture != approve)
+  -> registration 25b9d74c... status=PENDING
+
+$ # the same registrar tries to approve her own capture -> SoD violation
+  -> HTTP 403 Access denied
+
+$ # supervisor approves -> person record + checksummed national ID issued
+  -> registration status=APPROVED personId=3fb7b0bb...
+  -> person Na***in nationalId=20***18 status=ACTIVE
+
+$ # registrar2 captures a second birth, then a near-duplicate (typo) birth
+  -> two near-identical persons registered (fuzzy duplicate bait)
+
+$ # registrar registers a marriage (nadia is the spouse)
+  -> marriage registration b6e0b5f3... status=PENDING
+  -> marriage approved; spouse record: Nadia Hussain nationalId=2026000018
+
+$ # admin reviews fuzzy duplicate candidates and confirms the match
+  -> open duplicate candidates: 1
+     e745a4e7... {'id': 'e745a4e7-aa5a-4557-a8bf-54fb25bceed8', 'personAId': '3cd19abc-608b-4539-8a10-bbda628b5c45', 'personBId': '8e244b85-d9b1-4ac6-9118-5ec0f83ab4a4', 'score': 0.9923, 'status': 'OPEN', 'createdAt': '2026-08-20T12:15:34.917936Z'}
+  -> confirmed: {'id': 'e745a4e7-aa5a-4557-a8bf-54fb25bceed8', 'personAId': '3cd19abc-608b-4539-8a10-bbda628b5c45', 'personBId': '8e244b85-d9b1-4ac6-9118-5ec0f83ab4a4', 'score': 0.9923, 'status': 'CONFIRMED', 'createdAt': '2026-08-20T12:15:34.917936Z', 'decidedBy': 'admin', 'decidedAt': '2026-08-20T12:15:34.992961743Z'}
+
+$ # supervisor issues a birth certificate; verifier checks the token
+  -> certificate e6bb90b6... token=1081122814ee...
+  -> external verification: valid=True status=VALID
+
+$ # admin revokes the certificate; verification now fails
+  -> certificate status=REVOKED
+  -> external verification: valid=False status=REVOKED
+
+$ # registrar registers a death; banks see DECEASED immediately after approval
+  -> verifier query for 2026000018: exists=True status=DECEASED
+
+$ # statistician verifies the dual hash-chained ledgers
+  -> global registry chain: {'valid': True, 'entriesChecked': 7}
+  -> per-person life chain: {'valid': True, 'entriesChecked': 4}
+
+$ # vital statistics (births / marriages / deaths per region)
+  -> births: 3
+  -> deaths: 1
+  -> marriages: 1
+  -> naturalIncrease: 2
+  -> regions: 2 row(s)
+
+DEMO COMPLETE — four-eyes life-event registration, fuzzy dedup, certificates,
+deceased-status propagation and dual hash-chained ledgers
