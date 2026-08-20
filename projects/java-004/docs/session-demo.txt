@@ -1,0 +1,49 @@
+JAVA-004 Enterprise Document Governance Vault — LIVE DEMO (real server output)
+================================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ # upload contract.txt (multipart) -> enters QUARANTINED
+  -> document e1981312... status=QUARANTINED sha256=885e64bb72fac0f1...
+
+$ curl -s -X POST /api/v1/documents/<id>/classify  (records manager: CONFIDENTIAL/R0)
+  -> status=ACTIVE classification=CONFIDENTIAL retention=R0
+
+$ curl -s -X POST /api/v1/holds  (legal creates a litigation hold)
+  -> hold 0977283b... status=ACTIVE
+
+$ curl -s -X POST /api/v1/holds/<hold>/apply/<doc>  (document under hold)
+  -> hold status=ACTIVE
+
+$ curl -s -X POST /api/v1/retention/scan  (hold protects the document)
+  {'disposed': 0, 'protectedByHold': 0}
+
+$ curl -s /api/v1/documents/search?q=Acme  (full-text over extracted content)
+  e1981312 contract.txt       ACTIVE       hold=True
+
+$ curl -s /api/v1/documents/<id>/download  (as auditor -> clearance blocks RESTRICTED/CONFIDENTIAL)
+  -> HTTP 409 Insufficient clearance for this classification
+
+$ curl -s -X POST /api/v1/holds/<hold>/release  (legal releases the hold)
+  -> hold status=RELEASED
+
+$ curl -s -X POST /api/v1/dev/documents/<id>/elapse-days/45  (DEV-ONLY time travel: age the doc past R0=30d)
+  -> HTTP 200
+
+$ curl -s -X POST /api/v1/retention/scan  (past-retention doc now disposes with proof)
+  {'disposed': 1, 'protectedByHold': 0}
+
+$ curl -s /api/v1/documents/<id>/disposition-proofs  (append-only proof of destruction)
+  [
+    {
+      "documentId": "e1981312-3efd-4905-98fe-7e4bfbefdcea",
+      "contentHash": "885e64bb72fac0f12ff4ad2b77bab513f7a4af359467309a2d24404c80e040c5",
+      "retentionClass": "R0",
+      "disposedAt": "2026-08-20T05:33:39.651940Z",
+      "executor": "records",
+      "disposition": "DISPOSED"
+    }
+  ]
+
+DEMO COMPLETE — quarantine, classify, hold protection, clearance, disposition proof loop

@@ -1,0 +1,8 @@
+Running com.java700.govault.audit.PostgreSQLMigrationIT
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.006 s -- in com.java700.govault.audit.PostgreSQLMigrationIT
+Running com.java700.govault.flow.GovernanceFlowIT
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 16.62 s -- in com.java700.govault.flow.GovernanceFlowIT
+Running com.java700.govault.security.SecurityIT
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.317 s -- in com.java700.govault.security.SecurityIT
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 1
+BUILD SUCCESS
