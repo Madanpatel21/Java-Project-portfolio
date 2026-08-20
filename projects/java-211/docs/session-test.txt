@@ -1,0 +1,12 @@
+[INFO] Running com.java700.stewardship.antibiogram.AntibiogramServiceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.523 s -- in com.java700.stewardship.antibiogram.AntibiogramServiceTest
+[INFO] Running com.java700.stewardship.guidelines.RenalCalculatorTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.019 s -- in com.java700.stewardship.guidelines.RenalCalculatorTest
+[INFO] Running com.java700.stewardship.guidelines.StewardshipRuleEngineTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.280 s -- in com.java700.stewardship.guidelines.StewardshipRuleEngineTest
+[INFO] Running com.java700.stewardship.interventions.InterventionServiceTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.546 s -- in com.java700.stewardship.interventions.InterventionServiceTest
+[INFO] Running com.java700.stewardship.metrics.UtilizationMetricsTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in com.java700.stewardship.metrics.UtilizationMetricsTest
+[INFO] Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS

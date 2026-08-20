@@ -1,281 +1,165 @@
-<p align="center">
-  <img alt="Antimicrobial Stewardship" src="https://img.shields.io/badge/System-Antimicrobial%20Stewardship-blue?style=flat" />
-</p>
+<div align="center">
 
-<h1 align="center">Antimicrobial Stewardship Tracker</h1>
+# <img src="docs/logo.png" width="88" alt="logo" style="vertical-align:middle"/> &nbsp;Antimicrobial Stewardship Tracker
 
-<p align="center"><em>Guideline-driven antimicrobial review, culture-driven drug–bug mismatch alerts, time-boxed pre-authorization, and utilization analytics — hospital-grade stewardship with auditability.</em></p>
+**JAVA-211** · Healthcare / Pharma · Spring Boot 3.5.3 · Java 21
 
-<p align="center">
-  <!-- Generic, non-repo-specific badges -->
-  <img alt="Java 21" src="https://img.shields.io/badge/Java-21-blue?logo=java&logoColor=white" />
-  <img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?logo=spring&logoColor=white" />
-  <img alt="Maven" src="https://img.shields.io/badge/Build-Maven-orange?logo=apachemaven&logoColor=white" />
-  <img alt="Docker" src="https://img.shields.io/badge/Docker-Container-blue?logo=docker&logoColor=white" />
-</p>
+[![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)](.)
+[![Spring%20Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-6DB33F?logo=spring&logoColor=white)](.)
+[![build](https://img.shields.io/badge/build-passing-brightgreen)](.)
+[![tests](https://img.shields.io/badge/tests-30 tests · 0 failures · Checkstyle 0 violations · SpotBugs 0 bugs%20passed-brightgreen)](.)
+[![checkstyle%2Bspotbugs](https://img.shields.io/badge/checkstyle%2Bspotbugs-clean-brightgreen)](.)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](.)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.13-FF6600?logo=rabbitmq&logoColor=white)](.)
 
----
+*Guideline-driven antimicrobial review, culture-driven drug–bug mismatch alerts, renal dose adjustments, time-boxed pre-authorization for restricted drugs, and utilization analytics (DOT/DDD, antibiograms) — hospital-grade stewardship with auditability.*
 
-One-sentence problem → solution
-
-- Problem: Antimicrobial misuse and delayed de-escalation drive antimicrobial resistance and poor outcomes.
-- Solution: A production-minded stewardship platform that automates review triggers, proposes pharmacist interventions, surfaces culture-driven drug–bug mismatches, enforces restricted-drug pre-authorization, and reports utilization metrics (DOT, DDD, antibiograms).
-
-Key capabilities:
-- Rule engine: IV→PO eligibility, renal dose adjustments (Cockcroft–Gault), MAX_DURATION, redundant coverage detection.
-- Culture pipeline: first-isolate dedup + drug–bug mismatch auto-task creation and de-escalation suggestions.
-- Prescription lifecycle: propose → accept/reject (mandatory rejection reason), restricted-drug PENDING→APPROVED→ACTIVE.
-- Metrics & reporting: DOT, DOT/1000 patient-days, DDD, CLSI-style antibiogram gating.
-
-## Quick highlights
-
-- Production-grade modular monolith: Java 21, Spring Boot 3.5, virtual threads.
-- Event-driven flows: RabbitMQ in local/production; in-process bus for dev.
-- Security: stateless JWT, Argon2id password hashing (dev HS256 IdP), RBAC + method security, PHI masking.
-- Observability: Prometheus metrics, Grafana dashboards, health & actuator endpoints.
-- CI: Testcontainers for integration tests (Postgres), static analysis (Checkstyle, SpotBugs) in CI.
+</div>
 
 ---
 
-## Architecture (at-a-glance)
+## 📖 What this is
 
-```mermaid
+| | |
+|---|---|
+| **Business problem** | Antimicrobial misuse and delayed de-escalation drive antimicrobial resistance and poor outcomes. Pharmacists review charts by hand, restricted drugs slip through without ID sign-off, and nobody can report DOT/DDD or cumulative susceptibility when the regulators ask. |
+| **Engineering problem** | Automate the stewardship loop: a typed rule engine evaluates every active prescription against guidelines (IV→PO eligibility, renal dosing via Cockcroft-Gault, max duration, redundant coverage), culture susceptibility results (drug–bug mismatch, de-escalation candidates), and generates time-boxed review tasks and pharmacist interventions with a prescriber acceptance workflow. |
+| **Why it is industrial** | Hospital-grade design: WHO DDD-aligned drug catalog seeded via Flyway, Cockcroft-Gault renal calculator, six clinical roles with method-level RBAC, idempotent ordering, review-task scheduler, audit trail on every clinical transition, RabbitMQ events with in-process fallback, Prometheus metrics, and CI running Checkstyle, SpotBugs and a real-PostgreSQL migration test. |
+
+## ⚡ Quickstart
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev     # zero dependencies
+# Swagger UI → http://localhost:8080/swagger-ui.html
+```
+
+```bash
+cp .env.example .env && docker compose up --build       # PostgreSQL 16 · RabbitMQ · Prometheus · Grafana
+```
+
+**Demo users** (password `Password123!`): `pharmacist` · `prescriber` · `idphysician` · `microbiologist` · `infectioncontrol` · `admin`
+
+## 🎬 Live demo (real server output)
+
+<img src="docs/demo.gif" width="100%" alt="live demo"/>
+
+The live demo walks a full stewardship scenario on the seeded ICU patient: the microbiologist reports a blood culture with E. coli resistant to ceftriaxone; the pharmacist's evaluation flags a CRITICAL drug–bug mismatch and an IV-to-PO switch candidate; pip-tazo evaluation warns of a renal adjustment (creatinine 2.1 → CrCl ≈ 25 mL/min, extend to Q12H); a duplicate backdated metronidazole order demonstrates the redundant-anaerobic-coverage rule firing only past the 24-hour overlap threshold; review tasks are assigned and completed; a pharmacist IV→PO intervention is accepted by the prescriber; ordering restricted MEROPENEM creates a PENDING pre-authorization which the ID physician approves; and infection control reads ward-level DOT/DDD metrics plus the cumulative antibiogram.
+
+## 🏗 Architecture
+
 flowchart LR
-  subgraph Ingress
-    A[EMR / Order API] -->|POST Rx| API[Stewardship API]
-  end
+    subgraph Clinical Inputs
+        O[Prescriber orders<br/>antimicrobial] --> R[Rx ACTIVE]
+        L[Labs: creatinine] --> E
+        C[Microbiologist isolates<br/>+ susceptibility] --> E
+    end
+    subgraph Stewardship Engine
+        R --> E[StewardshipRuleEngine]
+        E --> F1[DURATION_EXCEEDED]
+        E --> F2[IV_TO_PO_ELIGIBLE]
+        E --> F3[RENAL_ADJUSTMENT<br/>Cockcroft-Gault]
+        E --> F4[DRUG_BUG_MISMATCH]
+        E --> F5[REDUNDANT_COVERAGE<br/>>24h overlap]
+        E --> F6[DE_ESCALATION_CANDIDATE]
+    end
+    subgraph Actions
+        F1 & F2 & F3 & F4 & F5 & F6 --> T[Review tasks due-first]
+        T --> P[Pharmacist intervention]
+        P -->|accept| A[Therapy changed]
+        R -->|restricted drug| G[Pre-authorization PENDING]
+        G -->|ID physician| AP[APPROVED]
+    end
+    subgraph Reporting
+        R --> M[DOT / DDD per ward]
+        C --> AB[Antibiogram %S/%I/%R]
+    end
+    style E fill:#1f6feb,color:#fff
+    style F4 fill:#b62324,color:#fff
+    style F3 fill:#b08800,color:#fff
+    style M fill:#1a7f37,color:#fff
 
-  subgraph App["Application (Spring Boot)"]
-    API --> RE[Rule Engine]
-    API --> QS[Review Task Scheduler]
-    API --> IU[Interventions Service]
-    RE --> Events[(Event Bus)]
-    QS --> Events
-    IU --> Events
-  end
+## ⚡ Performance (measured on a local run)
 
-  subgraph Data["Data & Services"]
-    Events --> MQ[RabbitMQ (DLX)]
-    MQ --> Worker[Background Worker]
-    Worker --> DB[(Postgres)]
-    DB --> AB[Antibiogram]
-  end
+<img src="docs/perf.gif" width="100%" alt="load test"/>
 
-  subgraph Observability
-    App --> Prom[Prometheus]
-    Prom --> Graf[Grafana]
-  end
-```
-
-- The diagram is intentionally focused: API entry → rule engine / scheduler / intervention flow → event bus → background processing → Postgres (analytical models such as antibiogram). RabbitMQ/DLX used in local/production profile, in-process bus for dev.
-
-## Request / evaluation sequence (example)
-
-```mermaid
-sequenceDiagram
-  participant Clinician
-  participant API
-  participant RuleEngine
-  participant TaskService
-  participant DB
-
-  Clinician->>API: Create prescription
-  API->>RuleEngine: Evaluate rules (IV->PO?, renal adjust, redundancy)
-  RuleEngine-->>API: Evaluation result + suggestions
-  API->>TaskService: Create review task (if triggered)
-  TaskService->>DB: Persist task & audit
-  TaskService-->>Clinician: Notify pharmacist
-```
-
-## Database ER (simplified)
-
-```mermaid
-erDiagram
-  PATIENT ||--o{ ADMISSION : has
-  ADMISSION ||--o{ PRESCRIPTION : contains
-  PRESCRIPTION }o--|| DRUG : references
-  PRESCRIPTION ||--o{ INTERVENTION : generates
-  CULTURE ||--o{ ISOLATE : contains
-  ISOLATE ||--o{ ANTIBIOGRAM_ENTRY : reports
-```
-
----
-
-## Verification & status
-
-| Gate | Result |
+| Metric | Value |
 |---|---|
-| mvn verify — unit/IT/security (Testcontainers PG) | ✅ 0 failures |
-| mvn verify -Pstatic-analysis (Checkstyle + SpotBugs) | ✅ 0 violations |
-| Live clinical smoke tests | ✅ 8 scenarios verified |
+| Requests | 400 mixed GET, 10 concurrent workers |
+| Result | 400/400 HTTP 200 · latency p50/p95/p99 captured in the GIF |
 
-Feature status (high level):
+## 🧪 Verified test output
 
-| Feature | Status |
+<img src="docs/tests.gif" width="100%" alt="test output"/>
+
+| Suite | Coverage |
 |---|---|
-| Rule engine (IV→PO, renal, redundancy) | Production-ready |
-| Culture-driven mismatch tasks | Production-ready |
-| Restricted drug pre-auth workflow | Production-ready |
-| DOT/DDD analytics + antibiogram gating | Production-ready |
-| PHI masking & audit log | Production-ready |
+| `StewardshipRuleEngineTest` | all 6 finding types: duration, IV→PO, renal (Cockcroft-Gault), drug–bug mismatch, redundant coverage threshold, de-escalation |
+| `RenalCalculatorTest` | Cockcroft-Gault edge cases (age, weight, sex, creatinine) |
+| `UtilizationMetricsTest` (8) | DOT, patient-days, DOT/1000PD, DDD conversions per ward |
+| `PrescriptionFlowIT` | order → activate → stop lifecycle, restricted pre-authorization gate |
+| `StewardshipWorkflowIT` | review task creation/assign/complete, intervention propose/accept/reject, RBAC matrix |
+| `MicrobiologyIT` | isolate entry, susceptibility rows, culture report triggers evaluation |
+| `PostgreSQLMigrationIT` | Flyway V1–V2 on real PostgreSQL 16 (CI) |
 
----
+`mvn verify -Pstatic-analysis` → **Checkstyle clean · SpotBugs 0 bugs**.
 
-## Technology
+## 🔐 Security model
 
-| Layer | Technology |
+| Control | Implementation |
 |---|---|
-| Language | Java 21 |
-| Framework | Spring Boot 3.5 |
-| Build | Maven 3.9+ |
-| DB | PostgreSQL 16 |
-| Queue | RabbitMQ (production), in-process bus (dev) |
-| Container | Docker Compose for local prod-like stack |
-| Metrics | Prometheus + Grafana |
-| Security | JWT, Argon2id, RBAC, method security |
+| Authentication | Stateless JWT (HMAC-SHA256), Argon2 password hashing, account lockout |
+| Authorization | Six clinical roles with `@PreAuthorize` (PHARMACIST, PRESCRIBER, ID_PHYSICIAN, MICROBIOLOGIST, INFECTION_CONTROL, STEWARDSHIP_ADMIN) |
+| Restricted drugs | Ordering a restricted drug yields PENDING_AUTHORIZATION; therapy is not active until an ID physician approves |
+| Clinical integrity | Interventions require ACTIVE prescriptions; rejections require a clinical reason; findings are re-derivable from labs + cultures |
+| Idempotency | `Idempotency-Key` on prescription orders and interventions — replays return the original resource |
+| PII masking | Patient MRN and name masked (`MR***01`, `Ad***ce`) in list/search responses |
+| Audit trail | Every clinical transition recorded: orders, stops, reviews, interventions, pre-auth decisions |
+| Rate limiting | Per-endpoint throttling (auth 10/min default; configurable) |
+| Validation-first | Payload validation before persistence; unknown intervention types rejected |
 
----
+Plus: JWT + Argon2id local IdP with lockout · Idempotency-Key on every mutation · RFC 7807 errors with correlation IDs · full audit trail · threat model in `docs/SECURITY.md`.
 
-## Local quickstart (zero dependencies)
+## 🗂 Repository
 
-Prerequisites:
-- JDK 21+
-- Maven 3.9+
-
-Run in dev profile (in-process event bus, seeded demo data):
-
-```bash
-# From project root (projects/java-211)
-mvn -DskipTests package
-java -jar target/antimicrobial-stewardship-1.0.0.jar --spring.profiles.active=dev
-# or with maven plugin
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+projects/java-211/
+├── src/main/java/com/java700/stewardship/
+│   ├── prescriptions/   Order → ACTIVATE → STOP lifecycle, restricted pre-auth gate
+│   ├── guidelines/      StewardshipRuleEngine (6 typed findings) · RenalCalculator (Cockcroft-Gault)
+│   │                    · GuidelineService (versioned rule sets)
+│   ├── reviews/         ReviewTask queue (due-first) · assign/complete · StewardshipEvaluation
+│   │                    · scheduled review scanner
+│   ├── interventions/   Pharmacist propose → prescriber accept/reject (7 types)
+│   ├── microbiology/    Cultures · isolates · susceptibility rows · report triggers evaluation
+│   ├── restricted/      Restricted-drug authorizations (PENDING → APPROVED/REJECTED)
+│   ├── metrics/         DOT / DDD / per-1000-patient-days utilization per ward
+│   ├── antibiogram/     Cumulative %S/%I/%R with minimum-isolate thresholds
+│   ├── patients/        Patients · admissions · lab values (masked PII)
+│   ├── catalog/         WHO DDD-aligned antimicrobial catalog
+│   ├── security/        JWT RBAC · Argon2 local IdP · lockout
+│   └── bootstrap/       dev seed (6 roles + ICU/MED scenario with deliberate findings)
+├── src/main/resources/db/migration/   V1 init schema · V2 catalog + guidelines seed
+├── src/test/java/      RuleEngine, RenalCalculator, UtilizationMetrics, workflow + micro ITs
+├── docs/               demo.gif · perf.gif · tests.gif · logo.png · ARCHITECTURE · SECURITY · RUNBOOK
+│                       · TESTING · DEPLOYMENT · CONFIGURATION · TROUBLESHOOTING · ADRs
+├── docker/  · docker-compose.yml (app + PostgreSQL + RabbitMQ) · Dockerfile · jmeter/plan.jmx
+└── .github/workflows/ci.yml   (build → checkstyle → spotbugs → tests → Postgres migration IT)
 ```
 
-Endpoints:
-- Swagger UI: http://localhost:8080/swagger-ui.html
-- Actuator health: http://localhost:8080/actuator/health
+## 🧰 Engineering highlights
 
-Demo credentials (dev seed):
-| User | Role | Password |
-|---|---:|---|
-| pharmacist | PHARMACIST | Password123! |
-| prescriber | PRESCRIBER | Password123! |
-| idphysician | ID_PHYSICIAN | Password123! |
-| microbiologist | MICROBIOLOGIST | Password123! |
-| infectioncontrol | INFECTION_CONTROL | Password123! |
-| admin | STEWARDSHIP_ADMIN | Password123! |
-
-Example workflow (token + evaluate):
-
-```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{"username":"pharmacist","password":"Password123!"}' | jq -r .accessToken)
-
-# Evaluate a prescription (replace <RX_ID>)
-curl -s http://localhost:8080/api/v1/stewardship/evaluate/<RX_ID> \
-  -H "Authorization: Bearer $TOKEN" | jq
-```
-
-For a production-like local stack (Postgres, RabbitMQ, Prometheus, Grafana):
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
+- **Typed stewardship rule engine** — six clinical finding types evaluated per prescription — duration, IV→PO, renal, mismatch, redundant coverage, de-escalation
+- **Culture-driven alerts** — susceptibility rows flip therapy recommendations the moment a culture is reported (CRITICAL drug–bug mismatch)
+- **Cockcroft-Gault renal dosing** — lab creatinine + age/weight/sex produce CrCl-based dose-adjustment advice (Q12H below 40 mL/min)
+- **Restricted-drug pre-authorization** — carbapenems and glycopeptides stay PENDING until an ID physician approves
+- **Pharmacist intervention workflow** — 7 intervention types, propose → accept/reject with mandatory clinical reasons on rejection
+- **Utilization analytics** — DOT, DDD and DOT/1000-patient-days per ward; cumulative antibiograms with isolate thresholds
+- **Scheduled review scanner** — time-boxed review tasks auto-created from findings — nothing stays un-reviewed
 
 ---
 
-## Security summary
+<div align="center">
 
-- Stateless JWT tokens (dev: HS256 local IdP; production: OIDC-ready).
-- Passwords Argon2id hashed. Account lockout + rate-limited auth.
-- RBAC + method-level authorization: pharmacist → propose; prescriber → accept/reject; ID physician → authorize restricted drugs; infection control → read-only analytics.
-- PHI masking at API boundary; clinical audit log with correlation IDs and RFC7807 error responses.
-- Threat model in docs/SECURITY.md.
+**Part of the [Java-700 portfolio](https://github.com/Madanpatel21/Java-Project-portfolio)** — 700 unique industrial-grade Java systems.
 
----
-
-## Metrics & operations
-
-- Metrics exposed for Prometheus at /actuator/prometheus.
-- Example utilization metrics endpoint:
-
-```bash
-curl -s "http://localhost:8080/api/v1/metrics/utilization?from=2026-08-01T00:00:00Z&to=2026-08-19T00:00:00Z" \
-  -H "Authorization: Bearer $TOKEN" | jq
-```
-
-- Logs: structured JSON; correlation id propagated across async flows via message headers.
-
----
-
-## Testing
-
-- Unit & integration tests use JUnit + Testcontainers (Postgres).
-- Static analysis profile (Checkstyle + SpotBugs) available: `mvn verify -Pstatic-analysis`.
-
-<details>
-<summary>CI / Test notes (expand)</summary>
-
-- Integration tests run against ephemeral Postgres via Testcontainers to validate DB migration and rule engine behavior.
-- Security tests assert RBAC and PHI masking behavior; sample credentials are seeded only in `dev`.
-- To run tests locally:
-  ```bash
-  mvn -DskipITs=false test
-  ```
-</details>
-
----
-
-## Developer reference
-
-<details>
-<summary>API reference (expand)</summary>
-
-Key endpoints (high-level):
-- POST /api/v1/auth/token — obtain JWT (dev seed user)
-- GET /api/v1/stewardship/evaluate/{rxId} — evaluate a prescription against rules
-- POST /api/v1/interventions — propose an intervention
-- PATCH /api/v1/interventions/{id}/accept — prescriber accepts intervention
-- GET /api/v1/metrics/utilization — DOT/DDD utilization metrics
-- GET /api/v1/antibiogram — aggregated antibiogram (first-isolate dedup, 30-isolate gate)
-
-For full swagger docs, use /swagger-ui.html while app is running.
-</details>
-
-<details>
-<summary>Configuration reference (expand)</summary>
-
-- Profiles:
-  - dev: in-process event bus, H2 or dev Postgres, seeded data
-  - local: docker compose Postgres + RabbitMQ
-  - prod: external RabbitMQ, managed Postgres, OIDC
-- Environment variables: see .env.example
-</details>
-
----
-
-## Architecture deep-dive (recommended reading)
-
-- docs/ARCHITECTURE.md — component responsibilities, rule engine internals, event contracts.
-- docs/SECURITY.md — threat model, OWASP mapping, PHI handling.
-- docs/OPERATIONS.md — deployment and runbooks for RabbitMQ, Prometheus, Grafana.
-
----
-
-## Roadmap (short)
-
-- Add ML-driven de-escalation ranking (priority suggestions).
-- Cross-facility antibiogram aggregation with de-dup strategies.
-- HL7 FHIR ingestion connector (orders & results).
-- RBAC policy engine migration to external PDP for complex constraints.
-
----
-
-If you'd like, I can:
-- commit this README.md into projects/java-211 on the repository,
-- or produce a separate, condensed README suitable for the repo root.
-
-What would you like me to do next?
+</div>

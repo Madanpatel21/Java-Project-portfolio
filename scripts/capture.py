@@ -121,7 +121,13 @@ def load_test(base, paths, token, out):
                     "roster_rosters_published_total", "roster_swaps_approved_total",
                     "roster_swaps_rejected_total",
                     "roster_optimization_duration_seconds_count",
-                    "roster_optimization_duration_seconds_sum"}:
+                    "roster_optimization_duration_seconds_sum",
+                    "stewardship_reviews_total", "stewardship_prescriptions_total",
+                    "stewardship_interventions_proposed_total",
+                    "stewardship_interventions_accepted_total",
+                    "stewardship_alerts_drug_bug_mismatch_total",
+                    "stewardship_evaluation_duration_seconds_count",
+                    "stewardship_evaluation_duration_seconds_sum"}:
                 s.log("  " + metric_name)
     except Exception as e:
         s.log(f"  (metrics fetch skipped: {e})")
@@ -142,19 +148,16 @@ def main():
 
     base = "http://localhost:8080"
     demo_path = f"{project_dir}/docs/capture.py"
+    spec = importlib.util.spec_from_file_location("demo", demo_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
     if not perf_only:
-        spec = importlib.util.spec_from_file_location("demo", demo_path)
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-
         session = Session(f"{project_dir}/docs/session-demo.txt")
         try:
             mod.run(session, base)
         finally:
             session.close()
-        user = getattr(mod, "LOAD_USER", "auditor")
-    else:
-        user = "auditor"
+    user = getattr(mod, "LOAD_USER", "auditor")
     t = token(base, user)
     load_test(base, paths, t, f"{project_dir}/docs/session-perf.txt")
     print("captured demo + perf sessions")

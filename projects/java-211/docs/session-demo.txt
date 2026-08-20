@@ -1,0 +1,68 @@
+JAVA-211 Antimicrobial Stewardship Tracker — LIVE DEMO (real server output)
+==============================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ # pharmacist reviews the seeded patients (Ada ICU, Alan MED)
+  -> MR***01 Ad***ce age=84 weight=64.0kg
+  -> MR***02 Al***ng age=72 weight=78.0kg
+  -> Ada active therapy:
+     CEFTRIAXONE              IV 2000.0mg q24h empiric=True
+     PIPERACILLIN_TAZOBACTAM  IV 4500.0mg q8h empiric=False
+     METRONIDAZOLE            IV 500.0mg q8h empiric=False
+
+$ # microbiologist finds Ada's blood culture and adds the E. coli isolate
+  -> isolate added to culture fc9117fc...
+  -> culture reported (finalized)
+
+$ # pharmacist evaluates ceftriaxone against guidelines + culture evidence
+  -> [INFO] IV_TO_PO_ELIGIBLE: IV-to-PO switch candidate
+     action: Propose IV_TO_PO intervention
+  -> [CRITICAL] DRUG_BUG_MISMATCH: Drug-bug mismatch: resistant organism
+     action: Escalate to ID physician; switch therapy per susceptibility
+
+$ # evaluate pip-tazo: Ada's creatinine 2.1 -> Cockcroft-Gault CrCl ~25 mL/min
+  -> [WARNING] RENAL_ADJUSTMENT_NEEDED: Renal dose adjustment needed
+     action: Extend interval to Q12H below CrCl 40 mL/min
+
+$ # evaluate metronidazole at 24h overlap — the rule fires only past 24h
+  -> findings at ~24h overlap: 0 (threshold not crossed yet)
+
+$ # pharmacist stops the IV metronidazole, prescriber re-orders two backdated
+$ # duplicates — the redundant-coverage rule now fires (>24h overlap)
+  -> [INFO] IV_TO_PO_ELIGIBLE: IV-to-PO switch candidate
+     action: Propose IV_TO_PO intervention
+  -> [WARNING] REDUNDANT_COVERAGE: Redundant ANAEROBE coverage
+     action: Review combination therapy; stop the redundant agent
+
+$ # pharmacist works the review queue: assign + complete the due task
+  -> open review tasks: 3
+     DRUG_BUG_MISMATCH        due=2026-08-20T12:04
+     REDUNDANT_COVERAGE       due=2026-08-20T12:04
+     REDUNDANT_COVERAGE       due=2026-08-20T12:04
+  -> assigned task 4cf5ffb1... to pharmacist
+  -> completed: status=COMPLETED
+
+$ # pharmacist proposes an IV-to-PO switch intervention on the duplicate order
+  -> intervention 9f14f6e3... type=IV_TO_PO status=PROPOSED
+  -> prescriber accepted: status=ACCEPTED
+
+$ # prescriber orders restricted MEROPENEM -> pre-authorization required
+  -> rx created status=PENDING_AUTHORIZATION preAuthorizationRequired=True
+  -> pending authorizations: 1
+     151b236a... status=PENDING
+  -> ID physician approved: status=APPROVED
+
+$ # infection control reads utilization metrics (DOT / DDD per ward)
+  -> ICU-1  DOT=65 patientDays=16 DOT/1000PD=4062.5
+  -> MED-2  DOT=13 patientDays=14 DOT/1000PD=928.6
+
+$ # antibiogram snapshot (cumulative susceptibility)
+  -> minimumIsolates=30 reportable rows=3
+     Escherichia coli / Cefazolin isolates=1 S=100.0%
+     Escherichia coli / Ceftriaxone isolates=1 S=0.0%
+     Escherichia coli / Piperacillin-Tazobactam isolates=1 S=100.0%
+
+DEMO COMPLETE — guideline evaluation, drug-bug mismatch, renal dosing,
+redundant-coverage alerts, IV→PO intervention, restricted pre-authorization

@@ -10,6 +10,9 @@ spring:
 app:
   seed:
     enabled: true
+  rate-limit:
+    auth-per-minute: 30
+    verify-per-minute: 100000
 
 management:
   health:
