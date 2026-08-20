@@ -1,6 +1,0 @@
-{"type":"VIOLATION","id":"8685f1b0-b4b1-42f2-bbf5-e33a46984e79","ruleType":"SOD_CONFLICT","severity":"HIGH","status":"OPEN","detectedAt":"2026-08-20T11:52:34.707979Z"}
-{"type":"VIOLATION","id":"010b396f-e38e-4b40-ac5c-387eeae9fd0e","ruleType":"RECERT_OVERDUE","severity":"MEDIUM","status":"CLOSED","detectedAt":"2026-08-20T11:52:34.732347Z"}
-{"type":"GRANT","id":"45db2ec7-27e8-46d2-84c5-6aeb3587c7b5","resourceName":"payroll-admin","roles":["ADMIN"],"status":"ACTIVE"}
-{"type":"GRANT","id":"173b3efa-9a3f-4331-9f74-12d92d80db3a","resourceName":"payroll-admin","roles":["APPROVER","REQUESTER"],"status":"ACTIVE"}
-{"type":"GRANT","id":"ff62ca20-9409-4a49-87d3-99b43c6b5a41","resourceName":"prod-orders-db","roles":["READ"],"status":"ACTIVE"}
-{"type":"ACCESS_EVENT","id":"ad3d0058-3500-40a8-8cd7-d4fbb7ed49f0","userId":"469f2be4-1739-42b3-a17c-a51234361e88"}

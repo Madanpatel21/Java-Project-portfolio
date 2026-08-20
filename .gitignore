@@ -5,4 +5,5 @@ build/
 .idea/
 *.iml
 .DS_Store
-data/exports
+**/data/exports/
+**/data/exports/
