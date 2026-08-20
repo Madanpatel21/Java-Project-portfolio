@@ -1,0 +1,28 @@
+LOAD TEST (real measurements against the live server)
+====================================================
+
+$ # 400 mixed GET requests, 10 concurrent workers
+
+  requests:      400
+  status codes:  {200: 400}
+  total time:    1.50s
+  throughput:    266.2 req/s
+  latency p50:   35.6 ms
+  latency p95:   51.6 ms
+  latency p99:   75.1 ms
+  max:           79.7 ms
+
+$ curl -s /actuator/prometheus  (business metrics after the run)
+  expfraud_cases_cleared_total
+  expfraud_cases_confirmed_fraud_total
+  expfraud_cases_opened_total
+  expfraud_claims_risk_score_count
+  expfraud_claims_risk_score_sum
+  expfraud_claims_scored_total
+  expfraud_claims_submitted_total
+  expfraud_duplicates_groups_total
+  expfraud_scoring_duration_seconds_count
+  expfraud_scoring_duration_seconds_sum
+  expfraud_tips_received_total
+
+LOAD TEST COMPLETE

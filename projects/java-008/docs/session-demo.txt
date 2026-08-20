@@ -1,0 +1,60 @@
+JAVA-008 Expense Fraud & Policy Analytics Engine — LIVE DEMO (real server output)
+===============================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ # employee submits a clean meal claim (44.25, receipt attached)
+  -> EF-2026-00001  score=0 tier=LOW status=SCORED
+
+$ # manager approves it (low risk)
+  -> EF-2026-00001 status=APPROVED
+
+$ # employee submits weekend mileage: 245.75 km on a SATURDAY
+  -> EF-2026-00002  score=20 tier=LOW status=SCORED
+     [ANOMALY ] WEEKEND-MILEAGE: Mileage claimed on a SATURDAY — unusual for business travel
+
+$ # employee submits two near-identical claims at the same merchant (duplicate cluster)
+  -> EF-2026-00004  score=30 tier=LOW status=SCORED
+     [ANOMALY ] DUPLICATE-CLUSTER: Matches 1 near-identical claim(s) at Taj Kitchen within 30 days
+
+$ # investigator lists duplicate evidence groups
+  -> group 20e4040e... merchant=Taj Kitchen size=2 confidence=0.99 claims=['EF-2026-00004', 'EF-2026-00003']
+
+$ # employee submits two 350.00 mileage claims Fri+Sat at the same station -> HIGH risk
+  -> EF-2026-00006  score=85 tier=HIGH status=UNDER_REVIEW
+     [VIOLATION] MILEAGE-CAP: Mileage amount exceeds per-day cap of 300.00
+     [WARNING ] ROUND-AMOUNT: Suspiciously round amount (common in fabricated receipts)
+     [ANOMALY ] WEEKEND-MILEAGE: Mileage claimed on a SATURDAY — unusual for business travel
+     [ANOMALY ] DUPLICATE-CLUSTER: Matches 1 near-identical claim(s) at BP Fuel within 30 days
+
+$ # manager tries to approve the high-risk claim -> blocked by policy guard
+  -> HTTP 409 conflict: claim EF-2026-00006 is UNDER_REVIEW and cannot be decided by a manager
+
+$ # investigator picks the case from the queue and recommends FRAUD
+  -> CASE-2026-00001  score=85 status=OPEN
+  -> status=REVIEWED reviewerOne=investigator
+
+$ # same investigator tries to confirm -> four-eyes control rejects
+  -> HTTP 409 four-eyes violated: the deciding investigator must differ from the reviewer
+
+$ # a second investigator confirms the fraud -> claim marked CONFIRMED_FRAUD
+  -> case status=CONFIRMED_FRAUD decision=CONFIRM_FRAUD reviewerTwo=investigator2
+  -> claim EF-2026-00006 status=CONFIRMED_FRAUD
+
+$ # seed peer history, recompute baselines, then submit a 247.35 outlier meal
+  -> baselines recomputed: 2 buckets
+     ENGINEERING/MEALS mean=55.01 stdDev=8.63 samples=9
+  -> EF-2026-00013  score=55 tier=MEDIUM status=SCORED
+     [VIOLATION] MEALS-CAP: Meal amount exceeds per-meal cap of 75.00
+     [ANOMALY ] PEER-OUTLIER: Amount is 22.29 standard deviations above the ENGINEERING MEALS peer mean of 55.01
+
+$ # anonymous whistleblower tip (no authentication required)
+  -> HTTP 201 TIP-2026-00001 status=NEW (submitter identity not recorded)
+  -> investigator sees 1 tip(s)
+
+$ # auditor checks platform stats and PII visibility (full name) vs employee (masked)
+  -> submitted=0 underReview=0 confirmedFraud=1 avgRisk=17.31
+
+DEMO COMPLETE — policy rules, weekend-mileage, duplicate clustering, peer outlier,
+four-eyes case workflow, manager policy guard, anonymous whistleblower channel

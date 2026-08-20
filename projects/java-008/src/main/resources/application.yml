@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: expense-fraud
+  profiles:
+    default: dev
+  threads:
+    virtual:
+      enabled: true
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${APP_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  security:
+    jwt:
+      issuer: ${JWT_ISSUER:http://localhost:8080}
+      secret: ${JWT_SECRET:dev-only-please-rotate-this-secret-0123456789abcdef}
+      ttl-minutes: ${JWT_TTL_MINUTES:30}
+    lockout:
+      max-attempts: 5
+      lock-minutes: 15
+  fraud:
+    high-threshold: 65
+    medium-threshold: 35
+    duplicate-lookback-days: 30
+    min-peer-samples: 5
+  scheduler:
+    enabled: ${SCHEDULER_ENABLED:true}
+    baseline-cron: ${BASELINE_CRON:0 15 2 * * *}
+  messaging:
+    enabled: ${MESSAGING_ENABLED:false}
+  seed:
+    enabled: false
+  rate-limit:
+    auth-per-minute: 10
+    verify-per-minute: 60

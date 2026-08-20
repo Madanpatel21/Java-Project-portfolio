@@ -1,0 +1,12 @@
+[INFO] Running com.java700.expfraud.audit.PostgreSQLMigrationIT
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.011 s -- in com.java700.expfraud.audit.PostgreSQLMigrationIT
+[INFO] Running com.java700.expfraud.claims.ClaimGuardIT
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.24 s -- in com.java700.expfraud.claims.ClaimGuardIT
+[INFO] Running com.java700.expfraud.scoring.ScoringIT
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.247 s -- in com.java700.expfraud.scoring.ScoringIT
+[INFO] Running com.java700.expfraud.security.TipIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.704 s -- in com.java700.expfraud.security.TipIT
+[INFO] Running com.java700.expfraud.workflow.CaseWorkflowIT
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.595 s -- in com.java700.expfraud.workflow.CaseWorkflowIT
+[WARNING] Tests run: 16, Failures: 0, Errors: 0, Skipped: 1
+[INFO] BUILD SUCCESS

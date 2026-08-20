@@ -97,14 +97,23 @@ def load_test(base, paths, token, out):
     try:
         data = urllib.request.urlopen(f"{base}/actuator/prometheus").read().decode()
         for line in data.splitlines():
-            if not line.startswith("#") and line.split("{")[0] in {
+            metric_name = line.split("{")[0].split(" ")[0]
+            if not line.startswith("#") and metric_name in {
                     "contracts_total", "obligations_total", "obligations_open",
                     "obligations_completed_total", "obligations_waived_total",
                     "obligations_reminders_sent_total",
                     "p2p_invoices_ingested_total", "p2p_invoices_matched_total",
                     "p2p_exceptions_open", "p2p_exceptions_waived_total",
-                    "p2p_postings_total"}:
-                s.log("  " + line.split("{")[0])
+                    "p2p_postings_total",
+                    "expfraud_claims_submitted_total", "expfraud_claims_scored_total",
+                    "expfraud_cases_opened_total", "expfraud_cases_confirmed_fraud_total",
+                    "expfraud_cases_cleared_total", "expfraud_tips_received_total",
+                    "expfraud_duplicates_groups_created_total",
+                    "expfraud_duplicates_groups_total",
+                    "expfraud_claims_risk_score_count", "expfraud_claims_risk_score_sum",
+                    "expfraud_scoring_duration_seconds_count",
+                    "expfraud_scoring_duration_seconds_sum"}:
+                s.log("  " + metric_name)
     except Exception as e:
         s.log(f"  (metrics fetch skipped: {e})")
     s.log("")
@@ -113,24 +122,30 @@ def load_test(base, paths, token, out):
 
 
 def main():
-    project_dir = sys.argv[1]
-    demo_module = sys.argv[2]
-    paths = sys.argv[3:] or ["/api/v1/contracts", "/actuator/health"]
+    args = [arg for arg in sys.argv[1:]]
+    perf_only = "--perf-only" in args
+    if perf_only:
+        args.remove("--perf-only")
+    project_dir = args[0]
+    demo_module = args[1]
+    paths = args[2:] or ["/api/v1/contracts", "/actuator/health"]
     import importlib.util
 
     base = "http://localhost:8080"
     demo_path = f"{project_dir}/docs/capture.py"
-    spec = importlib.util.spec_from_file_location("demo", demo_path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    if not perf_only:
+        spec = importlib.util.spec_from_file_location("demo", demo_path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
 
-    session = Session(f"{project_dir}/docs/session-demo.txt")
-    try:
-        mod.run(session, base)
-    finally:
-        session.close()
-
-    user = getattr(mod, "LOAD_USER", "auditor")
+        session = Session(f"{project_dir}/docs/session-demo.txt")
+        try:
+            mod.run(session, base)
+        finally:
+            session.close()
+        user = getattr(mod, "LOAD_USER", "auditor")
+    else:
+        user = "auditor"
     t = token(base, user)
     load_test(base, paths, t, f"{project_dir}/docs/session-perf.txt")
     print("captured demo + perf sessions")
