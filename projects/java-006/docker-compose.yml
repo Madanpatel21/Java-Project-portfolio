@@ -1,0 +1,79 @@
+name: java006-achain
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-achain}
+      POSTGRES_USER: ${POSTGRES_USER:-achain}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-achain}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-achain}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-achain}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:-achain}
+    ports:
+      - "${RABBIT_PORT:-5672}:5672"
+      - "${RABBIT_MGMT_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  app:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-achain}
+      POSTGRES_USER: ${POSTGRES_USER:-achain}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-achain}
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: ${RABBIT_USER:-achain}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-achain}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-please-rotate-this-secret-0123456789abcdef}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - app
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-grafana}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+volumes:
+  pgdata:

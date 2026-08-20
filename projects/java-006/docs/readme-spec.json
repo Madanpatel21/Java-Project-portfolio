@@ -1,0 +1,27 @@
+{
+  "id": "JAVA-006",
+  "name": "Audit-Grade Approval & Policy Chain Engine",
+  "industry": "Governance / Risk · Enterprise",
+  "tests": 11,
+  "tagline": "Multi-step approval chains with per-step dual control, bound to immutable policy versions — every decision an auditable evidence record.",
+  "business_problem": "Approvals must prove WHO approved WHAT under WHICH policy version at the moment of the decision; spreadsheets and ad-hoc emails cannot.",
+  "engineering_problem": "A generic N-step approval chain engine with per-step approver counts, role gating, segregation of duties, policy-version pinning and an append-only decision evidence trail.",
+  "why_industrial": "Requests are bound to the exact policy-version snapshot in force at creation, chains enforce dual control per step, and auditors can replay the full decision trail.",
+  "users": "`requester` · `manager` · `manager2` · `director` · `legal` · `auditor` · `admin`",
+  "demo_narrative": "Captured against a running instance: **policy activation → 3-step chain creation (MANAGER×2 → DIRECTOR → LEGAL) → request bound to policy v1 → SoD blocks the requester → dual-control manager approvals → step advancement → APPROVED → the full decision evidence trail.**",
+  "mermaid": "```mermaid\nflowchart LR\n    P[\"Policy v1 (ACTIVE)\"] --> R[\"Approval request<br/>(pinned to policy version)\"]\n    R --> S1[\"Step 1: MANAGER x2<br/>(dual control)\"]\n    S1 -->|satisfied| S2[\"Step 2: DIRECTOR x1\"]\n    S2 -->|satisfied| S3[\"Step 3: LEGAL x1\"]\n    S3 -->|satisfied| A[\"APPROVED\"]\n    S1 -->|any REJECT| RJ[\"REJECTED\"]\n    S2 -->|any REJECT| RJ\n    S3 -->|any REJECT| RJ\n    R -->|requester decides| SOD[\"SoD blocked\"]\n    D[\"approval_decisions\"] -. \"append-only evidence\" .-> S1\n    D -.-> S2\n    D -.-> S3\n```\n",
+  "test_suites": [
+    {"name": "`ApprovalFlowIT` (5)", "coverage": "full 3-step dual-control chain, rejection, policy-version re-binding, escalation, malformed chain 400"},
+    {"name": "`SecurityIT` (5)", "coverage": "role matrix, auditor read-only, SoD, lockout, injection"},
+    {"name": "`PostgreSQLMigrationIT`", "coverage": "Flyway on real PostgreSQL 16 (CI)"}
+  ],
+  "security_matrix": "| Capability | REQUESTER | MANAGER | DIRECTOR | LEGAL | AUDITOR | ADMIN |\n|---|---|---|---|---|---|---|\n| Create request | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |\n| Approve/reject (role-gated per step) | ❌ | ✅ | ✅ | ✅ | ❌ | ✅ |\n| Activate policy versions | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |\n| Define chains | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |\n| Read decisions (evidence) | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |\n",
+  "repo_tree": "projects/java-006/\n├── src/main/java/com/java700/achain/\n│   ├── domain/       Policy + versions, chains, requests, decisions (evidence)\n│   ├── service/      ApprovalService (chain advance, SoD, escalation), ChainParser\n│   └── api/          REST controllers\n├── src/main/resources/db/migration/   V1 common · V2 approval schema\n├── docker/           docker-compose: PostgreSQL, RabbitMQ, Prometheus, Grafana\n├── docs/             ARCHITECTURE · SECURITY · RUNBOOK · ADRs · logo · demo/perf/tests GIFs\n└── jmeter/           load plan\n",
+  "highlights": [
+    ["Policy-version pinning", "requests capture the active policy version at creation; new versions never rewrite history"],
+    ["Per-step dual control", "each chain step declares a role and the number of distinct approvers required"],
+    ["Segregation of duties", "requesters can never decide their own requests — enforced in the domain, tested"],
+    ["Evidence trail", "every decision is append-only with approver, role step, timestamp and note"],
+    ["SLA escalation", "stale pending requests are extended and surfaced via events on a schedule"]
+  ]
+}

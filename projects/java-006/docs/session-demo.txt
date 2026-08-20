@@ -1,0 +1,64 @@
+JAVA-006 Audit-Grade Approval & Policy Chain Engine — LIVE DEMO (real server output)
+================================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ curl -s -X POST /api/v1/policies  (legal activates CAPEX_APPROVAL v1)
+  -> policy created: CAPEX_APPROVAL
+
+$ curl -s -X POST /api/v1/chains  (admin creates a 3-step chain: MANAGER x2 -> DIRECTOR -> LEGAL)
+  -> chain created: CAPEX_CHAIN
+
+$ curl -s -X POST /api/v1/requests  (requester submits PO-7001, bound to policy v1)
+  -> request 019ba4cc... status=PENDING step=1 policyV=f8973143
+
+$ curl -s -X POST /api/v1/requests/<id>/approve  (as requester -> SoD blocks)
+  -> HTTP 403
+
+$ curl -s -X POST /api/v1/requests/<id>/approve  (manager approves - step 1 needs 2)
+  -> step=1 status=PENDING
+$ curl -s -X POST /api/v1/requests/<id>/approve  (manager2 completes dual control -> step 2)
+  -> step=2 status=PENDING
+$ curl -s -X POST /api/v1/requests/<id>/approve  (director -> step 3)
+  -> step=3 status=PENDING
+$ curl -s -X POST /api/v1/requests/<id>/approve  (legal -> APPROVED)
+  -> status=APPROVED
+
+$ curl -s /api/v1/requests/<id>/decisions  (audit-grade decision evidence)
+  [
+    {
+      "id": "7ed65332-44c1-4e2d-82c0-60a9db4ca09a",
+      "requestId": "019ba4cc-605a-46fd-96b9-afbfec63a3ef",
+      "stepNo": 1,
+      "approverName": "manager",
+      "decision": "APPROVE",
+      "decidedAt": "2026-08-20T05:58:02.305430Z"
+    },
+    {
+      "id": "85936fd2-9fca-425b-be9a-2c71f66f2908",
+      "requestId": "019ba4cc-605a-46fd-96b9-afbfec63a3ef",
+      "stepNo": 1,
+      "approverName": "manager2",
+      "decision": "APPROVE",
+      "decidedAt": "2026-08-20T05:58:02.341576Z"
+    },
+    {
+      "id": "de6d0c6b-c6f6-4718-8c7f-a6c3349876b9",
+      "requestId": "019ba4cc-605a-46fd-96b9-afbfec63a3ef",
+      "stepNo": 2,
+      "approverName": "director",
+      "decision": "APPROVE",
+      "decidedAt": "2026-08-20T05:58:02.374570Z"
+    },
+    {
+      "id": "793ccae7-c00d-4b7e-a1ec-92ed6edf9352",
+      "requestId": "019ba4cc-605a-46fd-96b9-afbfec63a3ef",
+      "stepNo": 3,
+      "approverName": "legal",
+      "decision": "APPROVE",
+      "decidedAt": "2026-08-20T05:58:02.401124Z"
+    }
+  ]
+
+DEMO COMPLETE — policy binding, 3-step chain, per-step dual control, SoD, evidence trail

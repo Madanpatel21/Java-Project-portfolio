@@ -1,0 +1,5 @@
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.004 s -- in com.java700.achain.audit.PostgreSQLMigrationIT
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 19.96 s -- in com.java700.achain.flow.ApprovalFlowIT
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.066 s -- in com.java700.achain.security.SecurityIT
+Tests run: 11, Failures: 0, Errors: 0, Skipped: 1
+BUILD SUCCESS
