@@ -1,0 +1,26 @@
+[INFO] Running com.java700.workforce.access.AccessFlowIT
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.11 s -- in com.java700.workforce.access.AccessFlowIT
+[INFO] Running com.java700.workforce.audit.ExportServiceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.271 s -- in com.java700.workforce.audit.ExportServiceTest
+[INFO] Running com.java700.workforce.audit.PostgreSQLMigrationIT
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.001 s -- in com.java700.workforce.audit.PostgreSQLMigrationIT
+[INFO] Running com.java700.workforce.common.MaskingSerializerTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.java700.workforce.common.MaskingSerializerTest
+[INFO] Running com.java700.workforce.compliance.ComplianceCorrelationIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.300 s -- in com.java700.workforce.compliance.ComplianceCorrelationIT
+[INFO] Running com.java700.workforce.compliance.ViolationServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.436 s -- in com.java700.workforce.compliance.ViolationServiceTest
+[INFO] Running com.java700.workforce.events.EventIngestServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.286 s -- in com.java700.workforce.events.EventIngestServiceTest
+[INFO] Running com.java700.workforce.evidence.EvidenceChainIT
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.000 s -- in com.java700.workforce.evidence.EvidenceChainIT
+[INFO] Running com.java700.workforce.evidence.HashChainTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in com.java700.workforce.evidence.HashChainTest
+[INFO] Running com.java700.workforce.policy.RuleEvaluatorsTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in com.java700.workforce.policy.RuleEvaluatorsTest
+[INFO] Running com.java700.workforce.security.LoginAttemptServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.111 s -- in com.java700.workforce.security.LoginAttemptServiceTest
+[INFO] Running com.java700.workforce.security.SecurityIT
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.831 s -- in com.java700.workforce.security.SecurityIT
+[WARNING] Tests run: 43, Failures: 0, Errors: 0, Skipped: 1
+[INFO] BUILD SUCCESS

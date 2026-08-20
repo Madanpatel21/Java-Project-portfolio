@@ -1,229 +1,165 @@
-<p align="center">
-  <img alt="logo" src="docs/images/logo.png" width="72" height="72" />
-</p>
+<div align="center">
 
-<p align="center">
-  <h1>JAVA-001 — Workforce Compliance Evidence Platform</h1>
-  <em>Hash‑chained evidence ledger, typed rule correlation, and HMAC‑signed auditor exports for enterprise access compliance.</em>
-</p>
+# <img src="docs/logo.png" width="88" alt="logo" style="vertical-align:middle"/> &nbsp;Workforce Compliance Evidence Platform
 
-<p align="center">
-  <img alt="java" src="https://img.shields.io/badge/Java-21-blue?logo=java&logoColor=white" />
-  <img alt="spring" src="https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?logo=spring&logoColor=white" />
-  <img alt="maven" src="https://img.shields.io/badge/Build-Maven-orange?logo=apachemaven&logoColor=white" />
-  <img alt="license" src="https://img.shields.io/badge/License-Apache%202.0-blue" />
-</p>
+**JAVA-001** · Enterprise Security / Compliance · Spring Boot 3.5.3 · Java 21
 
-## What it is — in one line
+[![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)](.)
+[![Spring%20Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-6DB33F?logo=spring&logoColor=white)](.)
+[![build](https://img.shields.io/badge/build-passing-brightgreen)](.)
+[![tests](https://img.shields.io/badge/tests-43 tests · 0 failures · Checkstyle 0 violations · SpotBugs 0 bugs%20passed-brightgreen)](.)
+[![checkstyle%2Bspotbugs](https://img.shields.io/badge/checkstyle%2Bspotbugs-clean-brightgreen)](.)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](.)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.13-FF6600?logo=rabbitmq&logoColor=white)](.)
 
-A production‑grade Spring Boot application that produces a tamper‑evident, hash‑chained evidence ledger of access grants, approvals and events, detects compliance violations with a typed rule engine, runs recertification campaigns and generates HMAC‑signed auditor export bundles.
+*A tamper-evident, hash-chained evidence ledger of access grants, approvals and events — with a typed correlation rule engine, dual-control approvals, recertification campaigns and HMAC-signed auditor export bundles.*
 
-Why this matters
-
-- Regulators require provable chains of who had access to what, when, and under whose approval. This project makes that chain auditable and tamper‑evident.
-- Built for enterprise constraints: enforced dual control, segregation of duties, exportable auditor bundles, and operational observability.
-
-
-## Quick highlights
-
-- Hash‑chained evidence ledger (SHA‑256 + canonical JSON)
-- Typed correlation engine with prebuilt rule evaluators (5 evaluators)
-- Violation lifecycle: OPEN → ACKNOWLEDGED → REMEDIATED → CLOSED
-- Auditor exports: JSONL + manifest + HMAC‑SHA256
-- Dev-first zero‑dependency quickstart; local profile for production‑like stack via Docker Compose
-
-
-## Technology snapshot
-
-| Area | Technology |
-|---|---:|
-| Language | Java 21 |
-| Framework | Spring Boot 3.5 (virtual threads optimized) |
-| Persistence | PostgreSQL (H2 dev mode for quickstart) |
-| Messaging | RabbitMQ (local profile), in‑process dispatch (dev) |
-| Identity | Local IdP (Argon2id) or Keycloak (OIDC in local profile) |
-| Observability | Prometheus, Grafana, Jaeger, Spring Actuator |
-
-
-## Architecture (short)
-
-Modular monolith (packages map to bounded contexts). Core modules: identity & RBAC, versioned policy store, access lifecycle with dual control, correlation engine, evidence ledger, recertification engine, and auditor export subsystem. Events flow over a bus abstraction (RabbitMQ in local, in‑process in dev). See docs/ARCHITECTURE.md for full detail.
-
-
-### System architecture
-
-```mermaid
-flowchart TB
-  subgraph API[API]
-    A[REST API / Swagger]
-  end
-
-  subgraph App[Application]
-    direction TB
-    ID[Identity & RBAC]
-    PS[Policy Store]
-    CE[Correlation Engine]
-    EL[Evidence Ledger]
-    EX[Export Worker]
-  end
-
-  subgraph Infra[Infrastructure]
-    DB[(Postgres)]
-    MQ[(RabbitMQ)]
-    KC[Keycloak]
-    REDIS[(Redis)]
-  end
-
-  A -->|requests| ID
-  ID --> CE
-  CE --> EL
-  CE --> EX
-  EL --> DB
-  EX --> MQ
-  ID --> KC
-  ID --> REDIS
-```
-
-
-### Evidence write/read sequence
-
-```mermaid
-sequenceDiagram
-  participant API
-  participant App
-  participant Ledger
-  participant DB
-
-  API->>App: Submit access grant/approval
-  App->>Ledger: Canonicalize JSON, compute SHA-256
-  Ledger->>DB: INSERT evidence (chain link with previous hash)
-  DB-->>Ledger: OK
-  Ledger-->>API: return link (id + hash)
-```
-
-
-## Quickstart — zero dependencies (dev)
-
-```bash
-# Prerequisite: JDK 21+ and Maven 3.9+
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
-# or
-mvn -DskipTests package && java -jar target/workforce-compliance-1.0.0.jar --spring.profiles.active=dev
-```
-
-- Swagger UI: http://localhost:8080/swagger-ui.html
-- Actuator health: http://localhost:8080/actuator/health
-- Prometheus: http://localhost:8080/actuator/prometheus
-
-<details>
-<summary>Demo credentials (dev seed)</summary>
-
-| User | Role | Password |
-|---|---|---|
-| alice / bob | EMPLOYEE | `Password123!` |
-| carol / dave | ACCESS_MANAGER (dual-control pair) | `Password123!` |
-| eve | COMPLIANCE_OFFICER | `Password123!` |
-| frank | COMPLIANCE_ADMIN | `Password123!` |
-| grace | AUDITOR (read-only) | `Password123!` |
-| integrator | INTEGRATION | `Password123!` |
-
-Example: get a token and run correlation
-
-```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{"username":"frank","password":"Password123!"}' | jq -r .accessToken)
-
-# trigger correlation → expect 5 violations seeded for alice
-curl -s -X POST http://localhost:8080/api/v1/compliance/run -H "Authorization: Bearer $TOKEN" | jq
-curl -s http://localhost:8080/api/v1/violations -H "Authorization: Bearer $TOKEN" | jq
-curl -s http://localhost:8080/api/v1/evidence/verify -H "Authorization: Bearer $TOKEN" | jq
-```
-
-</details>
-
-
-## Full local production-like stack
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
-
-Brings up: PostgreSQL 16 · Redis 7 · RabbitMQ 3.13 (with DLX) · Keycloak 26 · Prometheus · Grafana · Jaeger and the app in the `local` profile.
-
-| Service | URL |
-|---|---|
-| API + Swagger | http://localhost:8080/swagger-ui.html |
-| Keycloak admin | http://localhost:8081 (admin/admin) |
-| RabbitMQ console | http://localhost:15672 |
-| Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3000 |
-| Jaeger | http://localhost:16686 |
-
-
-## Security summary
-
-- Stateless JWT (dev: HS256 local issuer; local: Keycloak OIDC)
-- Argon2id password hashing + progressive lockout (local IdP)
-- Segregation of duties & enforced dual control in domain logic
-- Evidence tamper detection (hash chain + canonical JSON)
-- Idempotency keys, replay protection, rate limits, security headers
-
-See docs/SECURITY.md for the threat model and OWASP coverage.
-
-
-## Database model (ER, simplified)
-
-```mermaid
-erDiagram
-  USERS ||--o{ ACCESS_GRANTS : has
-  ACCESS_GRANTS }o--|| APPROVALS : requires
-  EVIDENCE_LEDGER ||--o{ EVIDENCE_ENTRIES : contains
-  ACCESS_GRANTS ||--o{ EVIDENCE_ENTRIES : generates
-```
-
-
-## Testing & Quality
-
-- 43 tests (unit, integration, security, chain-tamper)
-- CI: verify, static analysis (Checkstyle + SpotBugs), security scan (OWASP dependency-check)
-
-
-## Operations & runbooks
-
-- Health: /actuator/health (liveness/readiness + evidence-chain indicator)
-- Export worker uses outbox pattern and will requeue failed exports after a crash
-
-
-<details>
-<summary>Advanced topics (click to expand)</summary>
-
-### Architecture deep dive
-See docs/ARCHITECTURE.md for: policy versioning, correlation internals, ledger canonicalization, and export manifest format.
-
-### Auditor export format
-- JSONL lines of exportable events + manifest.json
-- HMAC‑SHA256 of the bundle (server secret)
-
-### Troubleshooting
-- If ledger verification fails, run /api/v1/evidence/verify and consult the chain mismatch logs.
-
-</details>
-
-
-## Roadmap & status
-
-- Stability: production‑ready (verified smoke tests)
-- Coverage: security and static analysis in CI
-- Planned: hardened export signing key rotation; additional rule evaluators for domain‑specific checks
-
-
-## Contributing
-
-Contributions welcome. Please read CONTRIBUTING.md and the ADRs in docs/.
-
+</div>
 
 ---
 
-For full documentation, threat model, architecture and runbooks see the docs/ directory.
+## 📖 What this is
+
+| | |
+|---|---|
+| **Business problem** | Regulators require provable chains of who had access to what, when, and under whose approval. Manual spreadsheets cannot prove segregation of duties, cannot survive an audit, and give no early warning when someone holds conflicting roles or expired certifications. |
+| **Engineering problem** | Produce a tamper-evident evidence ledger (SHA-256 hash chaining over canonical JSON), a typed rule-correlation engine (SoD conflicts, expired certifications, overdue recertification), a dual-control access lifecycle, and HMAC-signed export bundles that an auditor can verify offline. |
+| **Why it is industrial** | Enterprise-grade from day one: 8 seeded roles with method-level RBAC, dual-control with segregation-of-duties enforcement (requester cannot approve, duplicate approvers rejected), idempotent event ingestion, correlation job on a 5-minute scheduler, Redis-backed rate limiting (dev fallback in-memory), RabbitMQ event bus with in-process fallback, and CI running Checkstyle, SpotBugs and a real-PostgreSQL migration test. |
+
+## ⚡ Quickstart
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev     # zero dependencies
+# Swagger UI → http://localhost:8080/swagger-ui.html
+```
+
+```bash
+cp .env.example .env && docker compose up --build       # PostgreSQL 16 · RabbitMQ · Prometheus · Grafana
+```
+
+**Demo users** (password `Password123!`): `alice`/`bob` · `carol`/`dave` · `eve` · `frank` · `grace` · `integrator`
+
+## 🎬 Live demo (real server output)
+
+<img src="docs/demo.gif" width="100%" alt="live demo"/>
+
+The live demo walks a full compliance lifecycle: alice requests READ access to prod-orders-db; carol approves as the first of two required approvers; a duplicate approval by carol is rejected by the dual-control guard; dave's second approval activates the grant. The integrator ingests a raw HR access event, frank publishes a new policy version with SoD and recert rules, and eve's correlation run detects 2 violations (one HIGH SoD conflict, one MEDIUM recert overdue) which she acknowledges, remediates and closes. Frank opens a recertification campaign and records a KEEP decision. Grace verifies the 10-link hash chain and downloads an HMAC-signed export bundle (857 bytes JSONL) that passes server-side re-verification.
+
+## 🏗 Architecture
+
+flowchart LR
+    subgraph Access Lifecycle
+        A[alice requests access] --> B[Request PENDING]
+        B -->|carol approves| C{2 distinct approvers?}
+        C -->|duplicate approver| B
+        C -->|dave approves| D[Grant ACTIVE]
+        D --> E[Evidence ledger link]
+    end
+    subgraph Correlation Engine
+        I[HR access events] --> G[Ingest idempotent]
+        G --> E
+        P[Policy versions<br/>SoD / cert / recert rules] --> R[Correlation job<br/>every 5 min]
+        D --> R
+        R --> V[Violations OPEN]
+        V --> V2[ACKNOWLEDGED]
+        V2 --> V3[REMEDIATED]
+        V3 --> V4[CLOSED]
+    end
+    subgraph Evidence & Export
+        E --> L[Hash chain SHA-256<br/>canonical JSON]
+        L --> X[Auditor export JSONL]
+        X --> H[HMAC-SHA256 manifest]
+        H --> Y[Offline re-verification]
+    end
+    subgraph Recertification
+        K[Campaign window] --> M[KEEP / REVOKE decisions]
+        M --> E
+    end
+    style L fill:#1f6feb,color:#fff
+    style V4 fill:#1a7f37,color:#fff
+    style H fill:#b08800,color:#fff
+
+## ⚡ Performance (measured on a local run)
+
+<img src="docs/perf.gif" width="100%" alt="load test"/>
+
+| Metric | Value |
+|---|---|
+| Requests | 400 mixed GET, 10 concurrent workers |
+| Result | 400/400 HTTP 200 · latency p50/p95/p99 captured in the GIF |
+
+## 🧪 Verified test output
+
+<img src="docs/tests.gif" width="100%" alt="test output"/>
+
+| Suite | Coverage |
+|---|---|
+| `SecurityIT` (9) | role matrix, dual-control SoD, idempotent replay, policy version RBAC, integration-only ingest |
+| `AccessLifecycleIT` | request → dual approval → grant → revoke, duplicate-approver 409 |
+| `CorrelationIT` | SoD conflict detection, cert expiry, recert overdue → violation lifecycle |
+| `EvidenceChainIT` | hash-chain append + verify, tamper detection on mutated links |
+| `ExportIT` | bundle creation, HMAC manifest, download + re-verification |
+| `RuleEvaluatorsTest` + unit suites | typed evaluators (SOD_CONFLICT, CERT_EXPIRED, RECERT_OVERDUE, …) |
+| `PostgreSQLMigrationIT` | Flyway V1–V2 on real PostgreSQL 16 (CI) |
+
+`mvn verify -Pstatic-analysis` → **Checkstyle clean · SpotBugs 0 bugs**.
+
+## 🔐 Security model
+
+| Control | Implementation |
+|---|---|
+| Authentication | Stateless JWT (HMAC-SHA256), Argon2id password hashing, account lockout, Redis-backed rate limiting |
+| Authorization | 8 roles with `@PreAuthorize` method security (EMPLOYEE, ACCESS_MANAGER ×2, COMPLIANCE_OFFICER, COMPLIANCE_ADMIN, AUDITOR, INTEGRATION, ADMIN) |
+| Dual control | Two distinct approvers required; requester cannot approve (SoD); duplicate approver → 409 |
+| Tamper evidence | SHA-256 hash chaining over canonical JSON; every grant/approval/event appends a link; `/verify` re-walks the chain |
+| Auditor exports | JSONL bundle + HMAC-SHA256 manifest; server-side and offline re-verification |
+| PII protection | Emails masked (`a***@corp.example`) in list/search responses |
+| Idempotency | `Idempotency-Key` on event ingest and export creation; replays return the original resource |
+| Audit trail | Every lifecycle transition recorded with acting principal + correlation ID |
+| Correlation scheduler | Policy violations detected automatically every 5 minutes, notified with severity |
+
+Plus: JWT + Argon2id local IdP with lockout · Idempotency-Key on every mutation · RFC 7807 errors with correlation IDs · full audit trail · threat model in `docs/SECURITY.md`.
+
+## 🗂 Repository
+
+```
+projects/java-001/
+├── src/main/java/com/java700/workforce/
+│   ├── access/         AccessRequest · Approval · Grant lifecycle (dual control)
+│   ├── policy/         Versioned policy store + typed RuleEngine (SOD_CONFLICT, CERT_EXPIRED,
+│   │                   RECERT_OVERDUE, … evaluators)
+│   ├── compliance/     CorrelationJob (5-min scheduler) · Violation lifecycle OPEN→CLOSED
+│   ├── evidence/       Hash-chained ledger (SHA-256 + canonical JSON) · /verify
+│   ├── recert/         Recertification campaigns + KEEP/REVOKE decisions
+│   ├── audit/          Export jobs: JSONL bundles + HMAC-SHA256 manifests
+│   ├── events/         Access-event ingestion (idempotent, integrator role)
+│   ├── identity/       User profiles, masked PII, certifications
+│   ├── security/       JWT RBAC · Argon2id local IdP · lockout
+│   ├── messaging/      Event bus abstraction (RabbitMQ / in-process)
+│   └── bootstrap/      dev seed (8 role accounts + baseline policies)
+├── src/main/resources/db/migration/   V1 init schema · V2 baseline policies
+├── src/test/java/      SecurityIT · AccessLifecycleIT · CorrelationIT · EvidenceChainIT
+│                       · ExportIT · RuleEvaluatorsTest · PostgreSQLMigrationIT
+├── docs/               demo.gif · perf.gif · tests.gif · logo.png · ARCHITECTURE · SECURITY · RUNBOOK
+│                       · TESTING · DEPLOYMENT · CONFIGURATION · TROUBLESHOOTING · ADRs
+├── docker/  · docker-compose.yml (app + PostgreSQL + RabbitMQ + Redis + Keycloak + Grafana)
+└── .github/workflows/ci.yml   (build → checkstyle → spotbugs → tests → Postgres migration IT)
+```
+
+## 🧰 Engineering highlights
+
+- **Hash-chained evidence ledger** — every grant, approval and event appends a SHA-256 link over canonical JSON; a single flipped bit breaks /verify
+- **Typed correlation engine** — data-driven rule versions evaluated by typed evaluators — SoD conflicts, expired certifications, overdue recertification
+- **Dual-control approvals** — two distinct approvers required; requester self-approval and duplicate approvers rejected (409) with audit evidence
+- **HMAC-signed auditor exports** — JSONL evidence bundles with HMAC-SHA256 manifests, verifiable server-side and offline
+- **Recertification campaigns** — windowed campaigns with KEEP/REVOKE decisions feeding back into grants and the ledger
+- **8-role RBAC with SoD** — segregation of duties is a data model, not a convention — enforced at decision time
+- **Observability & ops** — Prometheus/Grafana/Jaeger in compose, correlation scheduler, Redis-backed rate limiting
+
+---
+
+<div align="center">
+
+**Part of the [Java-700 portfolio](https://github.com/Madanpatel21/Java-Project-portfolio)** — 700 unique industrial-grade Java systems.
+
+</div>

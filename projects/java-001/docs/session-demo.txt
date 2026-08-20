@@ -1,0 +1,51 @@
+JAVA-001 Workforce Compliance Evidence Platform — LIVE DEMO (real server output)
+===============================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ # alice (EMPLOYEE) requests READ access to prod-orders-db for herself
+  -> request a9da4b41... status=PENDING subject=alice roles=['READ']
+
+$ # carol (ACCESS_MANAGER) approves — first of two required approvers
+  -> status=PENDING
+
+$ # carol tries again — dual control rejects duplicate approver
+  -> HTTP 409 Dual control: this approver has already decided
+
+$ # dave (second ACCESS_MANAGER) approves — grant is created
+  -> request status=APPROVED
+  -> grant ff62ca20... prod-orders-db roles=['READ'] status=ACTIVE
+  -> grant 173b3efa... payroll-admin roles=['APPROVER', 'REQUESTER'] status=ACTIVE
+  -> grant 45db2ec7... payroll-admin roles=['ADMIN'] status=ACTIVE
+
+$ # integrator ingests a raw access event from the HR system
+  -> eventId=ad3d0058-350... duplicate=False
+
+$ # frank (COMPLIANCE_ADMIN) publishes a new policy version (SoD rules)
+  -> policy ACCESS_GOVERNANCE new version 2
+
+$ # eve (COMPLIANCE_OFFICER) runs the correlation engine
+  -> HTTP 200
+  -> violations: 2
+     010b396f... severity=MEDIUM status=OPEN
+     8685f1b0... severity=HIGH status=OPEN
+
+$ # eve acknowledges -> remediates -> closes the first violation
+  -> violation 010b396f... now CLOSED
+
+$ # frank generates a recertification campaign (30-day window)
+  -> campaign a26aae39... window=2026-08-20..2026-09-19
+  -> decision recorded: KEEP
+
+$ # grace (AUDITOR) verifies the evidence ledger hash chain
+  -> {'valid': True, 'entriesChecked': 10}
+  -> ledger entries for the access request: 3
+
+$ # grace creates a signed auditor export bundle (JSONL + HMAC-SHA256)
+  -> job 02233f9d... status=PENDING
+  -> HMAC verification: {'valid': True, 'algorithm': 'HmacSHA256', 'startSeq': 10, 'endSeq': 10}
+  -> bundle downloaded: 857 bytes of JSONL evidence
+
+DEMO COMPLETE — dual-control approvals, SoD enforcement, hash-chained evidence,
+rule correlation, recertification and HMAC-signed auditor exports

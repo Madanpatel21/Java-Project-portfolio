@@ -12,6 +12,9 @@ spring:
 app:
   seed:
     enabled: true
+  rate-limit:
+    auth-per-minute: 30
+    ingest-per-minute: 100000
   correlation:
     cron: "0 */5 * * * *"
 
