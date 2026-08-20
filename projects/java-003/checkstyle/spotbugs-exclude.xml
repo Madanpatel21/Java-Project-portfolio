@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Spring DI: constructor injection of container-managed singletons (never externally mutated) -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+    <Class name="~com\.java700\.contracts\..*"/>
+  </Match>
+  <!-- Fail-fast wiring: constructor throws intentionally if handler wiring is broken -->
+  <Match>
+    <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    <Class name="~com\.java700\.contracts\.messaging\..*"/>
+  </Match>
+  <!-- Domain entities named *Exception are data, not java.lang.Exception subclasses -->
+  <Match>
+    <Bug pattern="NM_CLASS_NOT_EXCEPTION"/>
+    <Class name="~com\.java700\.contracts\.domain\..*"/>
+  </Match>
+</FindBugsFilter>

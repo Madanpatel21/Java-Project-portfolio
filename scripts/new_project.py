@@ -17,7 +17,7 @@ def main():
         "%%PKG_ESCAPED%%": pkg_name.replace(".", "\\."),
         "%%APP_CLASS%%": main_cls,
         "%%ARTIFACT%%": artifact,
-        "%%APP_NAME%%": app_name,
+        "%%APP_NAME%%": app_name.replace("&", "&amp;"),
         "%%DESC%%": desc,
         "%%MAIN_FQCN%%": f"{pkg_name}.{main_cls}",
         "%%PROJECT_DIR%%": project_dir,

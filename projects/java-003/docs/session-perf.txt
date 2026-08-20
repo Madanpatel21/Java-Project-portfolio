@@ -1,0 +1,17 @@
+LOAD TEST (real measurements against the live server)
+====================================================
+
+$ # 400 mixed GET requests, 10 concurrent workers
+
+  requests:      400
+  status codes:  {200: 400}
+  total time:    1.50s
+  throughput:    266.3 req/s
+  latency p50:   35.5 ms
+  latency p95:   53.7 ms
+  latency p99:   64.0 ms
+  max:           73.6 ms
+
+$ curl -s /actuator/prometheus  (business metrics after the run)
+
+LOAD TEST COMPLETE

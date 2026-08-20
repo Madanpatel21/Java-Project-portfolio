@@ -1,0 +1,78 @@
+JAVA-003 Contract Lifecycle & Obligation Engine — LIVE DEMO (real server output)
+================================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ # tokens issued for: legal, cmanager, finance, auditor
+
+$ curl -s -X POST /api/v1/contracts  (cmanager creates CT-1001, DRAFT)
+  -> contract 59149cf3... status=DRAFT
+
+$ curl -s -X POST /api/v1/contracts/<id>/versions  (clauses v1: price clause = sensitivity-3)
+  -> version 1 created: HTTP 200
+
+$ curl -s /api/v1/contracts/<id>/clauses  (as FINANCE, clearance 3 -> full text)
+  {
+    "clauses": [
+      {
+        "number": "1.1",
+        "title": "Term",
+        "text": "12 months",
+        "sensitivity": 1
+      },
+      {
+        "number": "1.2",
+        "title": "Price",
+        "text": "100 USD per unit",
+        "sensitivity": 3
+      }
+    ],
+    "contractId": "59149cf3-b25b-4269-a69e-79826010d1ef",
+    "versionNo": 1,
+    "viewerClearance": 3
+  }
+
+$ curl -s /api/v1/contracts/<id>/clauses  (as AUDITOR, clearance 2 -> REDACTED)
+  {
+    "clauses": [
+      {
+        "number": "1.1",
+        "title": "Term",
+        "text": "12 months",
+        "sensitivity": 1
+      },
+      {
+        "number": "1.2",
+        "title": "Price",
+        "text": "[REDACTED \u2014 clearance level 2]",
+        "sensitivity": 3,
+        "redacted": true
+      }
+    ],
+    "contractId": "59149cf3-b25b-4269-a69e-79826010d1ef",
+    "versionNo": 1,
+    "viewerClearance": 2
+  }
+
+$ curl -s -X POST /api/v1/contracts/<id>/activate  (cmanager approves - 1 of 2)
+  -> status: DRAFT
+$ curl -s -X POST /api/v1/contracts/<id>/activate  (legal approves - 2 of 2)
+  -> status: ACTIVE  (four-eyes complete)
+
+$ curl -s -X POST /api/v1/obligations  (payment due in 2 days, 30-day window, HIGH)
+  -> obligation 0e479284... status=OPEN
+
+$ curl -s -X POST /api/v1/obligations/scan  (SLA scan -> NOTIFIED)
+  {'notified': 1, 'overdue': 0}
+
+$ curl -s /api/v1/obligations?status=NOTIFIED
+  0e479284 PAYMENT    NOTIFIED   Quarterly payment
+
+$ curl -s -X POST /api/v1/obligations/<id>/waive  (as cmanager -> four-eyes blocks)
+  -> HTTP 403 Access denied
+
+$ curl -s -X POST /api/v1/obligations/<id>/waive  (as legal -> WAIVED, audited)
+  -> status: WAIVED  waived_by=legal  reason='Payment terms renegotiated in amendment 2'
+
+DEMO COMPLETE — versioning, clearance redaction, four-eyes activation, SLA scan, waiver loop
