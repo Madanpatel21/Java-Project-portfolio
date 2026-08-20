@@ -112,7 +112,11 @@ def load_test(base, paths, token, out):
                     "expfraud_duplicates_groups_total",
                     "expfraud_claims_risk_score_count", "expfraud_claims_risk_score_sum",
                     "expfraud_scoring_duration_seconds_count",
-                    "expfraud_scoring_duration_seconds_sum"}:
+                    "expfraud_scoring_duration_seconds_sum",
+                    "fleet_tasks_forecasted_total", "fleet_tasks_overdue_total",
+                    "fleet_workorders_completed_total", "fleet_workorders_parts_hold_total",
+                    "fleet_parts_issued_total", "fleet_odometer_tamper_flags_total",
+                    "fleet_inspections_failed_total"}:
                 s.log("  " + metric_name)
     except Exception as e:
         s.log(f"  (metrics fetch skipped: {e})")

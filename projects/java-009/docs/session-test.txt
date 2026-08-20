@@ -1,0 +1,12 @@
+[INFO] Running com.java700.fleetmaint.audit.PostgreSQLMigrationIT
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.011 s -- in com.java700.fleetmaint.audit.PostgreSQLMigrationIT
+[INFO] Running com.java700.fleetmaint.compliance.ComplianceIT
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.65 s -- in com.java700.fleetmaint.compliance.ComplianceIT
+[INFO] Running com.java700.fleetmaint.planning.ForecastIT
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.808 s -- in com.java700.fleetmaint.planning.ForecastIT
+[INFO] Running com.java700.fleetmaint.security.OdometerIT
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.135 s -- in com.java700.fleetmaint.security.OdometerIT
+[INFO] Running com.java700.fleetmaint.workflow.WorkOrderIT
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.548 s -- in com.java700.fleetmaint.workflow.WorkOrderIT
+[WARNING] Tests run: 17, Failures: 0, Errors: 0, Skipped: 1
+[INFO] BUILD SUCCESS
