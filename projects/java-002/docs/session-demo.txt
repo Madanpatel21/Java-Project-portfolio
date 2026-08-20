@@ -1,0 +1,115 @@
+JAVA-002 Procure-to-Pay Reconciliation Platform — LIVE DEMO (real server output)
+==============================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+{"status":"UP","groups":["liveness","readiness"]}
+$ # [tokens issued for procurement, apclerk, apmanager]
+
+$ curl -s -X POST /api/v1/po  (procurement creates PO-1001: 100x WIDGET-2000 @ 10.0000 USD)
+   -> PO created: 0018112a-5717-4a4c-9c6a-a3274c4ab5d1
+
+$ curl -s /api/v1/po/0018112a-5717-4a4c-9c6a-a3274c4ab5d1   (PO view with lines + received/invoiced quantities)
+{
+    "id": "0018112a-5717-4a4c-9c6a-a3274c4ab5d1",
+    "poNumber": "PO-1001",
+    "supplierId": "SUP-1",
+    "supplierName": "Acme Supplies Ltd",
+    "currency": "USD",
+    "status": "OPEN",
+    "issuedAt": "2026-08-20T05:03:58.570881Z",
+    "lines": [
+        {
+            "id": "b2aae788-a4c3-429a-a2ba-b09a7359026e",
+            "lineNo": 1,
+            "itemCode": "WIDGET-2000",
+            "description": "Widget 2000",
+            "quantity": 100.0,
+            "unitPrice": 10.0,
+            "receivedQty": 0.0,
+            "invoicedQty": 0.0
+        }
+    ]
+}
+
+$ curl -s -X POST /api/v1/gr   (goods receipt GR-9001 for 100 units)
+   -> GR created: da555fbe-6b46-4434-805f-80c71333a83a
+
+$ curl -s -X POST /api/v1/invoices   (clean invoice INV-5001: 100 x 10.0000)
+{
+    "id": "439f27c7-e2e3-4355-9a49-0962b08484a8",
+    "invoiceNumber": "INV-5001",
+    "supplierName": "Acme Supplies Ltd",
+    "currency": "USD",
+    "totalAmount": 1000.0,
+    "status": "NEW",
+    "invoiceDate": "2026-08-05",
+    "createdAt": "2026-08-20T05:03:58.797696547Z"
+}
+
+$ # -> three-way match (PO=GR=INV) auto-runs at ingest: status MATCHED
+
+$ curl -s -X POST /api/v1/invoices   (price-variance invoice INV-5002: 10.90/unit = +9%)
+{
+    "id": "44f0c62f-54bb-44aa-b82c-a08cb2b23cc5",
+    "invoiceNumber": "INV-5002",
+    "supplierName": "Acme Supplies Ltd",
+    "currency": "USD",
+    "totalAmount": 1090.0,
+    "status": "NEW",
+    "invoiceDate": "2026-08-05",
+    "createdAt": "2026-08-20T05:03:58.922502434Z"
+}
+
+$ # -> +9% price variance exceeds the 2% tolerance -> status EXCEPTION
+
+$ curl -s /api/v1/exceptions?status=OPEN   (critical exception raised)
+{
+    "items": [
+        {
+            "id": "635aaa78-bbfc-4a88-ad4a-c2785b921fa8",
+            "invoiceId": "44f0c62f-54bb-44aa-b82c-a08cb2b23cc5",
+            "type": "PRICE_VARIANCE",
+            "severity": "CRITICAL",
+            "detail": "Item WIDGET-2000 unit price 10.9000 exceeds PO price 10.0000 by 9.000%",
+            "status": "OPEN",
+            "createdAt": "2026-08-20T05:03:58.939127Z"
+        }
+    ],
+    "page": 0,
+    "size": 20,
+    "totalElements": 1,
+    "totalPages": 1
+}
+
+$ curl -s -X POST /api/v1/exceptions/635aaa78-bbfc-4a88-ad4a-c2785b921fa8/waive  (as apclerk -> four-eyes blocks)
+{"type":"https://java700.dev/problems/forbidden","title":"forbidden","status":403,"detail":"Access denied","instance":"/api/v1/exceptions/635aaa78-bbfc-4a88-ad4a-c2785b921fa8/waive","correlationId":"07464276-2e62-41d1-81d4-414b19483885"}
+$ curl -s -X POST /api/v1/exceptions/635aaa78-bbfc-4a88-ad4a-c2785b921fa8/waive  (as apmanager -> WAIVED)
+{
+    "id": "635aaa78-bbfc-4a88-ad4a-c2785b921fa8",
+    "invoiceId": "44f0c62f-54bb-44aa-b82c-a08cb2b23cc5",
+    "type": "PRICE_VARIANCE",
+    "severity": "CRITICAL",
+    "detail": "Item WIDGET-2000 unit price 10.9000 exceeds PO price 10.0000 by 9.000%",
+    "status": "WAIVED",
+    "createdAt": "2026-08-20T05:03:58.939127Z",
+    "resolvedAt": "2026-08-20T05:03:59.126352703Z",
+    "resolvedBy": "apmanager",
+    "resolutionNote": "Supplier contract price update approved"
+}
+
+$ curl -s -X POST /api/v1/batch   (posting batch: approved invoices -> GL postings)
+{
+    "id": "42ff643a-00fe-4b3e-be72-f5b6085de143",
+    "startedAt": "2026-08-20T05:03:59.169254125Z",
+    "completedAt": "2026-08-20T05:03:59.201922012Z",
+    "invoicesProcessed": 0,
+    "exceptionsCreated": 0,
+    "postingsCreated": 2,
+    "status": "COMPLETED"
+}
+
+$ curl -s /api/v1/invoices   (final invoice states)
+  INV-5002     POSTED     USD 1090.0
+  INV-5001     MATCHED    USD 1000.0
+
+DEMO COMPLETE — full loop verified: PO -> GR -> match -> exception -> four-eyes waiver -> post

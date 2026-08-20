@@ -1,0 +1,9 @@
+[[1;34mINFO[m] Running com.java700.p2p.audit.[1mPostgreSQLMigrationIT[m
+[[1;34mINFO[m] Running com.java700.p2p.flow.[1mP2PFlowIT[m
+[[1;34mINFO[m] [1;32mTests run: [0;1;32m6[m, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 17.55 s -- in com.java700.p2p.flow.[1mP2PFlowIT[m
+[[1;34mINFO[m] Running com.java700.p2p.matching.[1mMatchingEngineTest[m
+[[1;34mINFO[m] [1;32mTests run: [0;1;32m11[m, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.051 s -- in com.java700.p2p.matching.[1mMatchingEngineTest[m
+[[1;34mINFO[m] Running com.java700.p2p.security.[1mSecurityIT[m
+[[1;34mINFO[m] [1;32mTests run: [0;1;32m7[m, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.150 s -- in com.java700.p2p.security.[1mSecurityIT[m
+[[1;33mWARNING[m] [1;33mTests run: 25, Failures: 0, Errors: 0, Skipped: 1[m
+[[1;34mINFO[m] [1;32mBUILD SUCCESS[m

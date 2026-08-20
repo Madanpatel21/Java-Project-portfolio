@@ -1,0 +1,24 @@
+JAVA-002 Procure-to-Pay Reconciliation — LOAD TEST (real measurements)
+=======================================================================
+
+$ # 400 mixed GET requests, 10 concurrent workers, against the live server
+
+  requests:      400
+  status codes:  {200: 400}
+  total time:    1.20s
+  throughput:    332.5 req/s
+  latency p50:   25.4 ms
+  latency p95:   62.8 ms
+  latency p99:   119.6 ms
+  max:           124.6 ms
+
+$ curl -s /actuator/prometheus | grep p2p_   (business metrics after the run)
+  p2p_exceptions_total 1.0
+  p2p_exceptions_open 0.0
+  p2p_exceptions_waived_total 1.0
+  p2p_invoices_ingested_total 2.0
+  p2p_invoices_matched_total 1.0
+  p2p_match_duration_seconds_max 0.058731149
+  p2p_postings_total 1.0
+
+LOAD TEST COMPLETE
