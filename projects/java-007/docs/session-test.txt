@@ -1,0 +1,6 @@
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.012 s -- in com.java700.legalmatter.audit.PostgreSQLMigrationIT
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.71 s -- in com.java700.legalmatter.flow.LegalFlowIT
+Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.098 s -- in com.java700.legalmatter.screening.ConflictScreenerTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.814 s -- in com.java700.legalmatter.security.SecurityIT
+Tests run: 16, Failures: 0, Errors: 0, Skipped: 1
+BUILD SUCCESS

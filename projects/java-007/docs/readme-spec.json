@@ -1,0 +1,28 @@
+{
+  "id": "JAVA-007",
+  "name": "Legal Matter & Conflict Intelligence",
+  "industry": "LegalTech · Enterprise",
+  "tests": 16,
+  "tagline": "Party-graph conflict screening, court-calendar deadline computation and ethical-wall enforcement — malpractice exposure, engineered away.",
+  "business_problem": "Law firms take matters that conflict with existing clients, and court deadlines slip — both cause malpractice exposure.",
+  "engineering_problem": "Graph-walk conflict screening over a parties graph with fuzzy name matching, rule-driven court-deadline computation, and role-based ethical walls.",
+  "why_industrial": "Direct adversity across matters is detected by graph traversal, fuzzy matches surface as POTENTIAL for analyst review, deadlines are computed from jurisdiction rules and missed deadlines are escalated — the anatomy of legal-grade risk control.",
+  "users": "`attorney` · `paralegal` · `analyst` · `litteam` · `auditor` · `admin`",
+  "demo_narrative": "Captured against a running instance: **parties + matter graph → conflict screen (Delta vs Beta → CONFLICT with the adverse-matter finding; Epsilon vs Zeta → CLEAR) → court deadlines computed from jurisdiction rules → ethical wall blocks LITIGATION_TEAM while the attorney retains access.**",
+  "mermaid": "```mermaid\nflowchart LR\n    P[\"parties graph<br/>(clients / opponents / related)\"] --> SC[\"Conflict Screener<br/>(normalize + fuzzy match + graph walk)\"]\n    SC -->|direct adversity| C[\"CONFLICT\"]\n    SC -->|fuzzy match only| PO[\"POTENTIAL\"]\n    SC -->|no matches| CL[\"CLEAR\"]\n    M[\"matter + jurisdiction + trigger date\"] --> DR[\"Deadline rules<br/>(days offset)\"]\n    DR --> DL[\"matter_deadlines\"]\n    DL -->|past due| MS[\"MISSED + alert\"]\n    W[\"ethical walls\"] -->|role blocked| AX[\"409 on matter access\"]\n```\n",
+  "test_suites": [
+    {"name": "`ConflictScreenerTest` (6)", "coverage": "clear/potential/conflict outcomes, graph-walk adversity, fuzzy resolution, normalization + Jaro-Winkler"},
+    {"name": "`LegalFlowIT` (2)", "coverage": "full loop (parties → matter → screen → deadlines → walls), missed-deadline detection"},
+    {"name": "`SecurityIT` (6)", "coverage": "role matrix, ethical-wall access control, validation, lockout, injection"},
+    {"name": "`PostgreSQLMigrationIT`", "coverage": "Flyway V1–V3 on real PostgreSQL 16 (CI)"}
+  ],
+  "security_matrix": "| Capability | ATTORNEY | PARALEGAL | CONFLICT_ANALYST | LITIGATION_TEAM | AUDITOR | ADMIN |\n|---|---|---|---|---|---|---|\n| Register parties / open matters | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |\n| Conflict screening | ✅ | ❌ | ✅ | ❌ | ❌ | ✅ |\n| Compute / complete deadlines | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ |\n| Ethical walls | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |\n| Matter reads | ✅ | ✅ | ✅ | wall-blocked | ✅ | ✅ |\n",
+  "repo_tree": "projects/java-007/\n├── src/main/java/com/java700/legalmatter/\n│   ├── screening/    ConflictScreener (graph walk + fuzzy matching), NameNormalizer\n│   ├── domain/       Parties, matters, matter-parties graph, deadlines, walls, checks\n│   ├── service/      LegalService (screening, deadlines, walls), DeadlineScheduler\n│   └── api/          REST controllers\n├── src/main/resources/db/migration/   V1 common · V2 legal schema · V3 deadline rules\n├── docker/           docker-compose: PostgreSQL, RabbitMQ, Prometheus, Grafana\n├── docs/             ARCHITECTURE · SECURITY · RUNBOOK · ADRs · logo · demo/perf/tests GIFs\n└── jmeter/           load plan\n",
+  "highlights": [
+    ["Graph-walk screening", "adverse parties are traced through matters to detect direct adversity against existing clients"],
+    ["Fuzzy name resolution", "typos resolve to real parties (Jaro-Winkler ≥ 0.92) and surface as POTENTIAL for analyst review"],
+    ["Rule-driven court deadlines", "jurisdiction rules with signed day offsets compute due dates; negative offsets handle pre-hearing filings"],
+    ["Missed-deadline escalation", "past-due OPEN deadlines flip to MISSED with events"],
+    ["Ethical walls", "role-based matter exclusion enforced at read time with full audit"]
+  ]
+}

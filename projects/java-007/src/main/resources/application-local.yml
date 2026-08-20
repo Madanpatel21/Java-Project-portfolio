@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:kit}
+    username: ${POSTGRES_USER:kit}
+    password: ${POSTGRES_PASSWORD:kit}
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:kit}
+    password: ${RABBIT_PASSWORD:kit}
+
+app:
+  messaging:
+    enabled: true
+  seed:
+    enabled: false
+
+logging:
+  structured:
+    format:
+      console: ecs
+  level:
+    com.java700.legalmatter: INFO

@@ -1,0 +1,29 @@
+JAVA-007 Legal Matter & Conflict Intelligence — LIVE DEMO (real server output)
+================================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ # attorney registers client Acme and opponent Beta; opens matter M-2026-001
+  parties: Acme=69414102... Beta=77b99031...  matter=6b517a3c...
+
+$ curl -s -X POST /api/v1/conflicts/screen  (prospective client Delta vs Beta)
+  -> result: CONFLICT
+     [CONFLICT] Adverse party 'Beta Industries' appears on a matter with existing client 'Acme Corporation'
+
+$ curl -s -X POST /api/v1/conflicts/screen  (clean: Epsilon vs Zeta)
+  -> result: CLEAR
+
+$ # paralegal computes court deadlines (DEFAULT jurisdiction, trigger 2026-08-20)
+  -> deadlines computed: 4
+     APPEAL         due=2026-08-13 status=OPEN
+     RESPONSE_DUE   due=2026-09-10 status=OPEN
+     DISCOVERY      due=2026-10-19 status=OPEN
+     HEARING        due=2026-11-18 status=OPEN
+
+$ curl -s -X POST /api/v1/matters/<id>/walls  (admin walls LITIGATION_TEAM)
+  -> wall added: LITIGATION_TEAM
+  -> litteam access: HTTP 409 Access blocked by an ethical wall
+  -> attorney access: HTTP 200 (M-2026-001)
+
+DEMO COMPLETE — party graph, conflict screening, court deadlines, ethical wall enforcement
