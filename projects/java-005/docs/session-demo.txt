@@ -1,0 +1,34 @@
+JAVA-005 Dynamic Workflow Orchestration Platform — LIVE DEMO (real server output)
+================================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ curl -s -X POST /api/v1/definitions  (padmin creates EXPENSE_APPROVAL v1)
+  -> definition 05c41575... v1 status=ACTIVE
+
+$ curl -s -X POST /api/v1/instances  (operator starts EXP-9001, amount=5000)
+  -> instance 2d7543be... status=WAITING_TASK node=review
+
+$ curl -s /api/v1/tasks?role=APPROVER  (worklist: first approval task)
+  2debd06b APPROVAL   role=APPROVER status=PENDING
+
+$ curl -s -X POST /api/v1/tasks/<id>/complete  (approver approves)
+  -> instance status=WAITING_TASK node=legal  (gateway routed amount>1000 -> legal)
+
+$ curl -s /api/v1/tasks?role=LEGAL  (legal review task appears)
+  821d99a7 APPROVAL   role=LEGAL status=PENDING
+
+$ curl -s -X POST /api/v1/tasks/<id>/complete  (legal approves -> COMPLETED)
+  -> instance status=COMPLETED
+
+$ curl -s -X POST /api/v1/instances  (second instance EXP-9002, amount=100)
+  -> instance 8407709d... status=WAITING_TASK
+
+$ curl -s -X POST /api/v1/instances/<id>/cancel  (cancel -> compensation task created)
+  -> instance status=CANCELLED
+
+$ curl -s /api/v1/tasks?role=COMPENSATION  (compensation worklist)
+  afd73f47 COMPENSATION   role=COMPENSATION status=PENDING
+
+DEMO COMPLETE — versioned definition, gateway routing, dual-approval chain, cancel + compensation

@@ -1,0 +1,7 @@
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.006 s -- in com.java700.wflow.audit.PostgreSQLMigrationIT
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.115 s -- in com.java700.wflow.engine.ExpressionEvaluatorTest
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.202 s -- in com.java700.wflow.engine.WorkflowEngineTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 14.63 s -- in com.java700.wflow.flow.WorkflowFlowIT
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.708 s -- in com.java700.wflow.security.SecurityIT
+Tests run: 23, Failures: 0, Errors: 0, Skipped: 1
+BUILD SUCCESS

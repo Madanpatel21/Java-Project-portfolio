@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:wflow-test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+
+app:
+  seed:
+    enabled: false
+  rate-limit:
+    auth-per-minute: 100000
+    verify-per-minute: 100000
+  scheduler:
+    enabled: false
+  registry:
+    dedup:
+      enabled: true
+      threshold: 0.85
