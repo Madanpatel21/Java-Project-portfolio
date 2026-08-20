@@ -1,0 +1,8 @@
+[INFO] Running com.java700.roster.audit.PostgreSQLMigrationIT
+[WARNING] Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.003 s -- in com.java700.roster.audit.PostgreSQLMigrationIT
+[INFO] Running com.java700.roster.solver.SolverIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 21.09 s -- in com.java700.roster.solver.SolverIT
+[INFO] Running com.java700.roster.workflow.SwapIT
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.158 s -- in com.java700.roster.workflow.SwapIT
+[WARNING] Tests run: 6, Failures: 0, Errors: 0, Skipped: 1
+[INFO] BUILD SUCCESS

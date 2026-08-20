@@ -1,0 +1,56 @@
+JAVA-010 Capacity & Shift Rostering Optimizer — LIVE DEMO (real server output)
+=============================================================================
+
+$ curl -s http://localhost:8080/actuator/health
+  UP
+
+$ # manager inspects the workforce (5 seeded employees, OPS department)
+  -> EMP-101 Ana Dias       skills=['NURSE', 'CARE'] max=40h
+  -> EMP-102 Bob Kumar      skills=['NURSE'] max=40h
+  -> EMP-103 Carla Menezes  skills=['CARE', 'DRIVER'] max=40h
+  -> EMP-104 Dev Patel      skills=['NURSE', 'DRIVER'] max=40h
+  -> EMP-105 Eva Lind       skills=['CARE'] max=40h
+
+$ # manager creates a 7-day roster from the demand curve (MORNING/AFTERNOON/NIGHT)
+  -> roster Week 35 OPS 2026-08-24..2026-08-30 status=DRAFT shifts=21
+
+$ # manager runs the Timefold optimizer (5s time limit)
+  -> score=0hard/-5824soft feasible=True assigned=21/21
+     constraint 'Availability': weight 0
+     constraint 'Coverage': weight 0
+     constraint 'Fairness (balanced hours)': weight 5824
+     constraint 'Max working days per week': weight 0
+     constraint 'Min rest after night': weight 0
+     constraint 'Night shift cap': weight 0
+     constraint 'One shift per employee per day': weight 0
+     constraint 'Skill match': weight 0
+     constraint 'Weekly hours cap': weight 0
+
+$ # auditor explains the score: every constraint match, with counts
+     Fairness (balanced hours)  matches= 5 hard=0 soft=-5824
+
+$ # employee views their own published schedule (self-service)
+  -> 2026-08-24 MORNING   6:00 skill=NURSE
+  -> 2026-08-25 NIGHT     22:00 skill=NURSE
+  -> 2026-08-27 MORNING   6:00 skill=NURSE
+  -> 2026-08-28 NIGHT     22:00 skill=NURSE
+
+$ # employee requests a swap: pick a NURSE shift, target a NURSE-qualified peer
+  -> SWAP-2026-00001 status=PENDING target=EMP-102
+
+$ # manager approves the swap (skill + availability re-validated)
+  -> SWAP-2026-00001 status=APPROVED reviewedBy=manager
+
+$ # roster coverage + fairness analytics
+  -> coverage=100.0% fairnessStdDev=5.99h pendingSwaps=0
+     EMP-101 Ana Dias       40h/week
+     EMP-102 Bob Kumar      40h/week
+     EMP-103 Carla Menezes  32h/week
+     EMP-104 Dev Patel      32h/week
+     EMP-105 Eva Lind       24h/week
+
+$ # manager publishes the roster (full coverage required)
+  -> status=PUBLISHED assigned=21/21
+
+DEMO COMPLETE — constraint-based rostering with Timefold, explainable scores,
+self-service schedules and manager-approved shift swaps

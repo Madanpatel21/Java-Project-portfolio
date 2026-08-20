@@ -116,7 +116,12 @@ def load_test(base, paths, token, out):
                     "fleet_tasks_forecasted_total", "fleet_tasks_overdue_total",
                     "fleet_workorders_completed_total", "fleet_workorders_parts_hold_total",
                     "fleet_parts_issued_total", "fleet_odometer_tamper_flags_total",
-                    "fleet_inspections_failed_total"}:
+                    "fleet_inspections_failed_total",
+                    "roster_rosters_created_total", "roster_rosters_optimized_total",
+                    "roster_rosters_published_total", "roster_swaps_approved_total",
+                    "roster_swaps_rejected_total",
+                    "roster_optimization_duration_seconds_count",
+                    "roster_optimization_duration_seconds_sum"}:
                 s.log("  " + metric_name)
     except Exception as e:
         s.log(f"  (metrics fetch skipped: {e})")
