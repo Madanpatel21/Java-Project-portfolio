@@ -7,7 +7,7 @@
 [![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)](.)
 [![Spring%20Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-6DB33F?logo=spring&logoColor=white)](.)
 [![build](https://img.shields.io/badge/build-passing-brightgreen)](.)
-[![tests](https://img.shields.io/badge/tests-37 tests · 0 failures · Checkstyle 0 violations · SpotBugs 0 bugs%20passed-brightgreen)](.)
+[![tests](https://img.shields.io/badge/tests-37%20tests%20%C2%B7%200%20failures%20%C2%B7%20Checkstyle%200%20violations%20%C2%B7%20SpotBugs%200%20bugs-brightgreen)](.)
 [![checkstyle%2Bspotbugs](https://img.shields.io/badge/checkstyle%2Bspotbugs-clean-brightgreen)](.)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](.)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.13-FF6600?logo=rabbitmq&logoColor=white)](.)
@@ -47,6 +47,7 @@ The live demo walks a citizen's whole life in one session: registrar captures a 
 
 ## 🏗 Architecture
 
+```mermaid
 flowchart LR
     subgraph Capture
         R1[registrar NORTH] --> C[Registration PENDING]
@@ -78,6 +79,7 @@ flowchart LR
     style PL fill:#1f6feb,color:#fff
     style D fill:#b62324,color:#fff
     style CT fill:#1a7f37,color:#fff
+```
 
 ## ⚡ Performance (measured on a local run)
 

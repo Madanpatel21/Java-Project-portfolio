@@ -5,6 +5,7 @@ Usage: python3 scripts/readme_gen.py <project_dir>/docs/readme-spec.json
 """
 import json
 import sys
+import urllib.parse
 
 SPEC = json.load(open(sys.argv[1]))
 
@@ -19,7 +20,7 @@ badges = [
     "Java-21-007396?logo=openjdk&logoColor=white",
     "Spring%20Boot-3.5.3-6DB33F?logo=spring&logoColor=white",
     "build-passing-brightgreen",
-    f"tests-{SPEC['tests']}%20passed-brightgreen",
+    f"tests-{urllib.parse.quote(str(SPEC['tests']), safe='')}-brightgreen",
     "checkstyle%2Bspotbugs-clean-brightgreen",
     "PostgreSQL-16-4169E1?logo=postgresql&logoColor=white",
     "RabbitMQ-3.13-FF6600?logo=rabbitmq&logoColor=white",
@@ -60,9 +61,15 @@ s.append('<img src="docs/demo.gif" width="100%" alt="live demo"/>')
 s.append('')
 s.append(SPEC['demo_narrative'])
 s.append('')
+mermaid = SPEC['mermaid'].strip()
+mermaid = mermaid[10:].lstrip() if mermaid.startswith('```mermaid') else mermaid
+mermaid = mermaid[3:].lstrip() if mermaid.startswith('```') else mermaid
+mermaid = mermaid[:-3].rstrip() if mermaid.endswith('```') else mermaid
 s.append('## 🏗 Architecture')
 s.append('')
-s.append(SPEC['mermaid'])
+s.append('```mermaid')
+s.append(mermaid)
+s.append('```')
 s.append('')
 s.append('## ⚡ Performance (measured on a local run)')
 s.append('')

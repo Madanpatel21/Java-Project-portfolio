@@ -7,7 +7,7 @@
 [![Java](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)](.)
 [![Spring%20Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-6DB33F?logo=spring&logoColor=white)](.)
 [![build](https://img.shields.io/badge/build-passing-brightgreen)](.)
-[![tests](https://img.shields.io/badge/tests-11%20passed-brightgreen)](.)
+[![tests](https://img.shields.io/badge/tests-11-brightgreen)](.)
 [![checkstyle%2Bspotbugs](https://img.shields.io/badge/checkstyle%2Bspotbugs-clean-brightgreen)](.)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](.)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.13-FF6600?logo=rabbitmq&logoColor=white)](.)
@@ -62,7 +62,6 @@ flowchart LR
     D -.-> S2
     D -.-> S3
 ```
-
 
 ## ⚡ Performance (measured on a local run)
 
